@@ -97,7 +97,7 @@
   }
 
   .anime-card {
-    @apply glass-card-hover overflow-hidden group cursor-pointer;
+    @apply glass-card-hover overflow-hidden cursor-pointer;
   }
 
   .anime-card-image {
