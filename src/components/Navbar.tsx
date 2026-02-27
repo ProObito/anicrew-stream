@@ -8,6 +8,7 @@ const Navbar = () => {
   const [query, setQuery] = useState("");
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [mobileMenu, setMobileMenu] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
   const navigate = useNavigate();
   const inputRef = useRef<HTMLInputElement>(null);
   const suggestRef = useRef<HTMLDivElement>(null);
@@ -36,6 +37,12 @@ const Navbar = () => {
     return () => document.removeEventListener("mousedown", handler);
   }, []);
 
+  useEffect(() => {
+    const handleScroll = () => setScrolled(window.scrollY > 50);
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     if (query.trim()) {
@@ -46,18 +53,35 @@ const Navbar = () => {
   };
 
   return (
-    <nav className="fixed top-0 left-0 right-0 z-50 glass-card border-b border-border/50">
-      <div className="container mx-auto flex items-center justify-between h-16 px-4">
-        <Link to="/" className="flex items-center gap-2 shrink-0">
-          <span className="text-2xl font-display font-bold gradient-text">
-            AniCrew
+    <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${
+      scrolled ? "bg-background/95 backdrop-blur-md border-b border-border/50" : "bg-gradient-to-b from-background/80 to-transparent"
+    }`}>
+      <div className="flex items-center justify-between h-16 px-8 md:px-16 lg:px-24">
+        <Link to="/" className="flex items-center gap-1 shrink-0">
+          <span className="text-3xl font-display font-black tracking-tighter uppercase">
+            Ani<span className="text-primary">Crew</span>
           </span>
         </Link>
+
+        {/* Desktop Nav Links */}
+        <div className="hidden md:flex items-center gap-8 text-sm font-medium text-muted-foreground uppercase tracking-widest">
+          <Link to="/" className="hover:text-primary transition-colors">Home</Link>
+          <Link to="/search" className="hover:text-primary transition-colors">Search</Link>
+          <Link to="/watchlist" className="relative hover:text-primary transition-colors flex items-center gap-1">
+            Watchlist
+            {watchlistCount > 0 && (
+              <span className="w-4 h-4 rounded-full bg-primary text-primary-foreground text-[9px] flex items-center justify-center font-bold">
+                {watchlistCount}
+              </span>
+            )}
+          </Link>
+          <Link to="/room" className="hover:text-primary transition-colors">Watch Party</Link>
+        </div>
 
         {/* Desktop Search */}
         <form
           onSubmit={handleSearch}
-          className="hidden md:flex relative flex-1 max-w-md mx-8"
+          className="hidden md:flex relative max-w-xs"
         >
           <div className="relative w-full">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
@@ -70,15 +94,15 @@ const Navbar = () => {
               }}
               onFocus={() => setShowSuggestions(true)}
               placeholder="Search anime..."
-              className="w-full pl-10 pr-4 py-2 rounded-xl bg-secondary border border-border text-foreground text-sm
-                placeholder:text-muted-foreground focus:outline-none focus:border-primary/50 focus:shadow-neon transition-all"
+              className="w-full pl-9 pr-4 py-2 rounded bg-secondary/80 border border-border text-foreground text-sm
+                placeholder:text-muted-foreground focus:outline-none focus:border-primary/50 transition-all backdrop-blur-sm"
             />
           </div>
 
           {showSuggestions && suggestions && suggestions.length > 0 && (
             <div
               ref={suggestRef}
-              className="absolute top-full left-0 right-0 mt-2 glass-card p-2 max-h-80 overflow-y-auto animate-fade-in"
+              className="absolute top-full left-0 right-0 mt-2 bg-card border border-border rounded-md p-2 max-h-80 overflow-y-auto z-50 animate-fade-in"
             >
               {suggestions.map((s: any) => (
                 <Link
@@ -88,12 +112,12 @@ const Navbar = () => {
                     setShowSuggestions(false);
                     setQuery("");
                   }}
-                  className="flex items-center gap-3 p-2 rounded-lg hover:bg-secondary transition-colors"
+                  className="flex items-center gap-3 p-2 rounded hover:bg-secondary transition-colors"
                 >
                   <img
                     src={s.poster}
                     alt={s.name}
-                    className="w-10 h-14 object-cover rounded-md"
+                    className="w-10 h-14 object-cover rounded"
                   />
                   <div className="min-w-0">
                     <p className="text-sm font-medium truncate text-foreground">
@@ -109,29 +133,6 @@ const Navbar = () => {
           )}
         </form>
 
-        {/* Desktop Nav Links */}
-        <div className="hidden md:flex items-center gap-4">
-          <Link
-            to="/watchlist"
-            className="relative flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors"
-          >
-            <Heart className="w-4 h-4" />
-            Watchlist
-            {watchlistCount > 0 && (
-              <span className="absolute -top-1.5 -right-3 w-4 h-4 rounded-full bg-primary text-primary-foreground text-[10px] flex items-center justify-center font-bold">
-                {watchlistCount}
-              </span>
-            )}
-          </Link>
-          <Link
-            to="/room"
-            className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors"
-          >
-            <Users className="w-4 h-4" />
-            Watch Party
-          </Link>
-        </div>
-
         {/* Mobile Menu Toggle */}
         <button
           onClick={() => setMobileMenu(!mobileMenu)}
@@ -143,34 +144,26 @@ const Navbar = () => {
 
       {/* Mobile Menu */}
       {mobileMenu && (
-        <div className="md:hidden glass-card border-t border-border/50 p-4 animate-fade-in">
-          <form onSubmit={handleSearch} className="mb-4">
+        <div className="md:hidden bg-card border-t border-border p-6 animate-fade-in">
+          <form onSubmit={handleSearch} className="mb-5">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
               <input
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 placeholder="Search anime..."
-                className="w-full pl-10 pr-4 py-2 rounded-xl bg-secondary border border-border text-foreground text-sm
+                className="w-full pl-10 pr-4 py-2.5 rounded bg-secondary border border-border text-foreground text-sm
                   placeholder:text-muted-foreground focus:outline-none focus:border-primary/50 transition-all"
               />
             </div>
           </form>
-          <div className="flex flex-col gap-3">
-            <Link
-              to="/watchlist"
-              onClick={() => setMobileMenu(false)}
-              className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground"
-            >
-              <Heart className="w-4 h-4" /> Watchlist ({watchlistCount})
+          <div className="flex flex-col gap-4 text-sm font-medium uppercase tracking-widest text-muted-foreground">
+            <Link to="/" onClick={() => setMobileMenu(false)} className="hover:text-primary transition-colors">Home</Link>
+            <Link to="/search" onClick={() => setMobileMenu(false)} className="hover:text-primary transition-colors">Search</Link>
+            <Link to="/watchlist" onClick={() => setMobileMenu(false)} className="hover:text-primary transition-colors flex items-center gap-2">
+              Watchlist {watchlistCount > 0 && `(${watchlistCount})`}
             </Link>
-            <Link
-              to="/room"
-              onClick={() => setMobileMenu(false)}
-              className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground"
-            >
-              <Users className="w-4 h-4" /> Watch Party
-            </Link>
+            <Link to="/room" onClick={() => setMobileMenu(false)} className="hover:text-primary transition-colors">Watch Party</Link>
           </div>
         </div>
       )}

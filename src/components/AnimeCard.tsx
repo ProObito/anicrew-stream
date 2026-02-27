@@ -1,13 +1,15 @@
 import { Link } from "react-router-dom";
-import { Heart } from "lucide-react";
+import { Heart, Play, Clock } from "lucide-react";
+import { motion } from "framer-motion";
 import { useWatchlistStore } from "@/store/watchlistStore";
 import type { AnimeResult } from "@/types/anime";
 
 interface AnimeCardProps {
   anime: AnimeResult;
+  variant?: "poster" | "landscape";
 }
 
-const AnimeCard = ({ anime }: AnimeCardProps) => {
+const AnimeCard = ({ anime, variant = "poster" }: AnimeCardProps) => {
   const { addToWatchlist, removeFromWatchlist, isInWatchlist } = useWatchlistStore();
   const inList = isInWatchlist(anime.id);
 
@@ -18,59 +20,70 @@ const AnimeCard = ({ anime }: AnimeCardProps) => {
     else addToWatchlist(anime);
   };
 
+  const isLandscape = variant === "landscape";
+
   return (
-    <Link to={`/anime/${anime.id}`} className="anime-card animate-fade-in">
-      <div className="relative overflow-hidden">
+    <Link to={`/anime/${anime.id}`} className="block flex-shrink-0">
+      <motion.div
+        whileHover={{ scale: 1.05, y: -5 }}
+        transition={{ duration: 0.2 }}
+        className={`relative cursor-pointer group rounded-md overflow-hidden bg-card ${
+          isLandscape ? "w-72 aspect-video" : "w-44 md:w-48 aspect-[2/3]"
+        }`}
+      >
         <img
           src={anime.poster}
           alt={anime.name}
-          className="anime-card-image"
+          className="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity duration-300"
           loading="lazy"
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-background/90 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
 
-        {/* Watchlist button */}
-        <button
-          onClick={toggleWatchlist}
-          className={`absolute top-2 right-2 w-8 h-8 rounded-full flex items-center justify-center transition-all duration-300 z-10
-            ${inList
-              ? "bg-primary text-primary-foreground shadow-neon"
-              : "bg-background/60 backdrop-blur-sm text-foreground hover:bg-primary hover:text-primary-foreground"
-            }`}
-        >
-          <Heart className={`w-4 h-4 ${inList ? "fill-current" : ""}`} />
-        </button>
-
-        {/* Badge */}
-        {anime.rating && (
-          <span className="absolute top-2 left-2 px-2 py-0.5 rounded-md bg-accent/90 text-accent-foreground text-xs font-bold">
-            {anime.rating}
-          </span>
-        )}
-
-        {/* Episodes badge */}
-        <div className="absolute bottom-2 left-2 flex gap-1.5">
-          {anime.episodes?.sub && (
-            <span className="px-1.5 py-0.5 rounded bg-primary/80 text-primary-foreground text-[10px] font-medium">
-              SUB {anime.episodes.sub}
-            </span>
-          )}
-          {anime.episodes?.dub && (
-            <span className="px-1.5 py-0.5 rounded bg-accent/80 text-accent-foreground text-[10px] font-medium">
-              DUB {anime.episodes.dub}
+        {/* Top badges */}
+        <div className="absolute top-2 left-2 flex gap-1.5 z-10">
+          {anime.rating && (
+            <span className="bg-primary text-primary-foreground text-[9px] font-bold px-1.5 py-0.5 rounded-sm uppercase tracking-wider shadow-lg">
+              {anime.rating}
             </span>
           )}
         </div>
-      </div>
 
-      <div className="p-3">
-        <h3 className="text-sm font-medium text-foreground truncate leading-tight">
-          {anime.name}
-        </h3>
-        <p className="text-xs text-muted-foreground mt-1">
-          {anime.type} {anime.duration && `• ${anime.duration}`}
-        </p>
-      </div>
+        {/* Watchlist */}
+        <button
+          onClick={toggleWatchlist}
+          className={`absolute top-2 right-2 w-7 h-7 rounded-full flex items-center justify-center transition-all duration-300 z-10
+            ${inList
+              ? "bg-primary text-primary-foreground"
+              : "bg-background/50 backdrop-blur-sm text-foreground opacity-0 group-hover:opacity-100"
+            }`}
+        >
+          <Heart className={`w-3.5 h-3.5 ${inList ? "fill-current" : ""}`} />
+        </button>
+
+        {/* Hover play overlay */}
+        <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-background/30">
+          <div className="w-12 h-12 rounded-full border-2 border-foreground flex items-center justify-center bg-background/40 backdrop-blur-sm">
+            <Play size={20} className="fill-foreground text-foreground ml-0.5" />
+          </div>
+        </div>
+
+        {/* Bottom gradient info */}
+        <div className="absolute bottom-0 inset-x-0 bg-gradient-to-t from-background via-background/80 to-transparent p-3 translate-y-2 group-hover:translate-y-0 transition-transform duration-300">
+          <h3 className="font-bold text-foreground truncate text-sm mb-1">
+            {anime.name}
+          </h3>
+          <div className="flex items-center justify-between text-[10px] text-muted-foreground font-medium">
+            <span className="uppercase tracking-widest">{anime.type}</span>
+            <div className="flex gap-1.5">
+              {anime.episodes?.sub && (
+                <span className="text-primary font-bold">SUB {anime.episodes.sub}</span>
+              )}
+              {anime.episodes?.dub && (
+                <span className="text-secondary-foreground font-bold">DUB {anime.episodes.dub}</span>
+              )}
+            </div>
+          </div>
+        </div>
+      </motion.div>
     </Link>
   );
 };
