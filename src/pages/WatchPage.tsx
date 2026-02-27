@@ -6,7 +6,7 @@ import VideoPlayer from "@/components/VideoPlayer";
 import EpisodeList from "@/components/EpisodeList";
 import ErrorFallback from "@/components/ErrorFallback";
 
-const SERVERS = ["vidstreaming", "megacloud", "streamsb"] as const;
+const SERVERS = ["megaplay", "vidwish"] as const;
 const CATEGORIES = ["sub", "dub"] as const;
 
 const WatchPage = () => {
@@ -15,16 +15,26 @@ const WatchPage = () => {
   const navigate = useNavigate();
   const epId = searchParams.get("ep") || "";
 
-  const [server, setServer] = useState<string>("vidstreaming");
+  const [server, setServer] = useState<string>("megaplay");
   const [category, setCategory] = useState<string>("sub");
 
   const { data: episodes, isLoading: epLoading } = useEpisodes(id || "");
   const { data: sources, isLoading: srcLoading, isError } = useEpisodeSources(epId, server, category);
 
+  useEffect(() => {
+    if (!episodes?.length) return;
+    const hasSelectedEpisode = episodes.some((episode: any) => episode.episodeId === epId);
+
+    if (!epId || !hasSelectedEpisode) {
+      setSearchParams({ ep: episodes[0].episodeId }, { replace: true });
+    }
+  }, [episodes, epId, setSearchParams]);
+
   const currentIndex = episodes?.findIndex((e: any) => e.episodeId === epId) ?? -1;
-  const currentEp = episodes?.[currentIndex];
-  const hasPrev = currentIndex > 0;
-  const hasNext = episodes && currentIndex < episodes.length - 1;
+  const safeIndex = currentIndex >= 0 ? currentIndex : 0;
+  const currentEp = episodes?.[safeIndex];
+  const hasPrev = safeIndex > 0;
+  const hasNext = !!episodes && safeIndex < episodes.length - 1;
 
   const goToEp = (episodeId: string) => {
     setSearchParams({ ep: episodeId });
@@ -54,7 +64,7 @@ const WatchPage = () => {
         <div className="flex items-center gap-2">
           <button
             disabled={!hasPrev}
-            onClick={() => episodes && goToEp(episodes[currentIndex - 1].episodeId)}
+            onClick={() => episodes && goToEp(episodes[safeIndex - 1].episodeId)}
             className="btn-glass px-3 py-2 text-sm disabled:opacity-30 flex items-center gap-1"
           >
             <ChevronLeft className="w-4 h-4" /> Prev
@@ -66,7 +76,7 @@ const WatchPage = () => {
           )}
           <button
             disabled={!hasNext}
-            onClick={() => episodes && goToEp(episodes[currentIndex + 1].episodeId)}
+            onClick={() => episodes && goToEp(episodes[safeIndex + 1].episodeId)}
             className="btn-glass px-3 py-2 text-sm disabled:opacity-30 flex items-center gap-1"
           >
             Next <ChevronRight className="w-4 h-4" />
@@ -107,7 +117,7 @@ const WatchPage = () => {
         <div className="mt-6">
           <EpisodeList
             episodes={episodes}
-            currentEpisodeId={epId}
+            currentEpisodeId={currentEp?.episodeId}
             onSelect={(ep) => goToEp(ep.episodeId)}
           />
         </div>
