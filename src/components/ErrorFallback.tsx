@@ -6,10 +6,10 @@ interface ErrorFallbackProps {
 }
 
 const ErrorFallback = ({ message = "Something went wrong", onRetry }: ErrorFallbackProps) => (
-  <div className="flex flex-col items-center justify-center py-20 text-center">
-    <AlertCircle className="w-12 h-12 text-destructive mb-4" />
-    <p className="text-foreground text-lg font-medium mb-2">{message}</p>
-    <p className="text-muted-foreground text-sm mb-4">Please try again later.</p>
+  <div className="flex flex-col items-center justify-center py-20 text-center px-4">
+    <AlertCircle className="w-12 h-12 text-primary mb-4" />
+    <p className="text-foreground text-lg font-bold uppercase tracking-wide mb-2">{message}</p>
+    <p className="text-muted-foreground text-sm mb-6">Please try again later.</p>
     {onRetry && (
       <button onClick={onRetry} className="btn-neon">
         Try Again
