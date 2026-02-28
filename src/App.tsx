@@ -6,6 +6,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { lazy, Suspense } from "react";
 import Navbar from "@/components/Navbar";
 
+const Home = lazy(() => import("./pages/Home"));
 const Index = lazy(() => import("./pages/Index"));
 const SearchPage = lazy(() => import("./pages/SearchPage"));
 const AnimeDetailPage = lazy(() => import("./pages/AnimeDetailPage"));
@@ -39,7 +40,7 @@ const App = () => (
         <Navbar />
         <Suspense fallback={<PageLoader />}>
           <Routes>
-            <Route path="/" element={<Index />} />
+            <Route path="/" element={<Home />} />
             <Route path="/search" element={<SearchPage />} />
             <Route path="/anime/:id" element={<AnimeDetailPage />} />
             <Route path="/watch/:id" element={<WatchPage />} />
