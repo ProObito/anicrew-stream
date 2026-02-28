@@ -12,6 +12,7 @@ const AnimeDetailPage = lazy(() => import("./pages/AnimeDetailPage"));
 const WatchPage = lazy(() => import("./pages/WatchPage"));
 const WatchlistPage = lazy(() => import("./pages/WatchlistPage"));
 const RoomPage = lazy(() => import("./pages/RoomPage"));
+const AdminDashboardPage = lazy(() => import("./pages/AdminDashboardPage"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
 const queryClient = new QueryClient({
@@ -44,6 +45,7 @@ const App = () => (
             <Route path="/watch/:id" element={<WatchPage />} />
             <Route path="/watchlist" element={<WatchlistPage />} />
             <Route path="/room" element={<RoomPage />} />
+            <Route path="/admin" element={<AdminDashboardPage />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </Suspense>
