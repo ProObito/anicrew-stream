@@ -11,15 +11,22 @@ const Player = () => {
   useEffect(() => {
     const fetchEpisodes = async () => {
       try {
-        // HiAnime API se is anime ke saare episodes nikal rahe hain
         const res = await fetch(`https://hianime-api-seven-teal.vercel.app/api/v1/episodes/${id}`);
         const result = await res.json();
 
-        if (result.success && result.data) {
-          setEpisodes(result.data.episodes || []);
-          if (result.data.episodes.length > 0) {
-            setCurrentEp(result.data.episodes[0]); // Pela episode default select
-          }
+        // Super-safe data extraction handling multiple possible API response structures
+        let fetchedEps = [];
+        if (result.data && result.data.episodes) {
+          fetchedEps = result.data.episodes;
+        } else if (result.episodes) {
+          fetchedEps = result.episodes;
+        } else if (Array.isArray(result.data)) {
+          fetchedEps = result.data;
+        }
+
+        setEpisodes(fetchedEps);
+        if (fetchedEps.length > 0) {
+          setCurrentEp(fetchedEps[0]); // Auto-select the first episode
         }
       } catch (err) {
         console.error("Failed to fetch episodes", err);
@@ -28,6 +35,7 @@ const Player = () => {
       }
     };
     fetchEpisodes();
+
   }, [id]);
 
   return (
