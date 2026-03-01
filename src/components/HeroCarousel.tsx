@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { Link } from "react-router-dom";
 import { Play, Heart, Info, ChevronLeft, ChevronRight } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 
 interface SpotlightAnime {
   id: string;
@@ -42,22 +42,12 @@ const HeroCarousel = ({ animes }: HeroCarouselProps) => {
     <div className="relative w-full flex flex-col items-center px-4 md:px-12 pt-20">
       {/* Main Banner */}
       <div className="relative w-full max-w-7xl h-[350px] md:h-[500px] rounded-[2.5rem] overflow-hidden shadow-[0_20px_50px_rgba(0,0,0,0.5)] group">
-        <AnimatePresence mode="wait">
-          <motion.div
-            key={anime.id}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.8 }}
-            className="absolute inset-0"
-          >
-            <img
-              src={anime.poster}
-              alt={anime.name}
-              className="w-full h-full object-cover"
-            />
-          </motion.div>
-        </AnimatePresence>
+        <img
+          key={anime.id}
+          src={anime.poster}
+          alt={anime.name}
+          className="absolute inset-0 w-full h-full object-cover transition-opacity duration-700"
+        />
 
         {/* Gradient overlays */}
         <div className="absolute inset-0 bg-gradient-to-t from-background via-background/40 to-transparent" />
