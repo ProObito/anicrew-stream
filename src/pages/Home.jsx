@@ -3,6 +3,7 @@ import { Play, Star, Heart, Search, Bell, User, LayoutDashboard, ChevronRight, C
 
 const Home = () => {
   const [heroAnimeList, setHeroAnimeList] = useState([]);
+  const [trendingList, setTrendingList] = useState([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -16,9 +17,12 @@ const Home = () => {
         }
         const data = await response.json();
 
-        // Ensure data is structured correctly based on typical responses, adjust if needed
-        const fetchedList = data?.spotlightAnimes || data?.trending || data || [];
-        setHeroAnimeList(fetchedList);
+        // Ensure data is strictly an array
+        const spotlightData = data?.data?.spotlight || data?.spotlightAnimes || [];
+        const trendingData = data?.data?.trending || data?.trending || [];
+
+        setHeroAnimeList(Array.isArray(spotlightData) ? spotlightData : []);
+        setTrendingList(Array.isArray(trendingData) ? trendingData : []);
       } catch (err) {
         setError("Error connecting to database");
       } finally {
@@ -40,10 +44,10 @@ const Home = () => {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-[#e5e7eb] md:bg-[#0d0d0f] text-black md:text-white flex items-center justify-center">
+      <div className="min-h-screen bg-[#0d0d0f] text-white flex items-center justify-center">
         <div className="flex flex-col items-center">
-          <div className="w-12 h-12 border-4 border-black md:border-white border-t-transparent rounded-full animate-spin"></div>
-          <p className="mt-4 font-bold tracking-widest uppercase">Loading Anime...</p>
+          <div className="w-12 h-12 border-4 border-white border-t-transparent rounded-full animate-spin"></div>
+          <p className="mt-4 font-bold tracking-widest uppercase">Summoning Anime...</p>
         </div>
       </div>
     );
@@ -95,7 +99,7 @@ const Home = () => {
         {/* BIG TEXT */}
         <h2 className="text-5xl md:text-[6rem] font-black uppercase tracking-tighter leading-[0.9] mb-8 text-black md:text-gray-200 transition-all duration-500">
           {currentAnime?.name || currentAnime?.title} <br className="hidden md:block"/>
-          <span className="text-gray-500 text-4xl md:text-[5rem]">{currentAnime?.subtitle || currentAnime?.type || "AWAKENING"}</span>
+          <span className="text-gray-500 text-4xl md:text-[5rem]">{currentAnime?.jname || currentAnime?.subtitle || currentAnime?.type || "AWAKENING"}</span>
         </h2>
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 md:gap-8 relative">
@@ -103,7 +107,7 @@ const Home = () => {
           {/* Left Big Landscape Image */}
           <div className="lg:col-span-8 relative h-[250px] md:h-[550px] rounded-tl-[3rem] rounded-br-[3rem] md:rounded-tl-[5rem] md:rounded-bl-[2rem] md:rounded-tr-[2rem] md:rounded-br-[5rem] overflow-hidden shadow-2xl group">
             <img
-              src={currentAnime?.poster || currentAnime?.bannerImg || currentAnime?.coverImg}
+              src={currentAnime?.poster || currentAnime?.image || currentAnime?.bannerImg || currentAnime?.coverImg}
               alt="Main Banner"
               className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-105"
             />
@@ -129,7 +133,7 @@ const Home = () => {
             {/* Top Right Portrait Image */}
             <div className="flex-1 rounded-tl-[2rem] rounded-br-[2rem] md:rounded-tl-[4rem] md:rounded-tr-[2rem] md:rounded-bl-[2rem] md:rounded-br-[4rem] overflow-hidden h-[200px] md:h-[300px] shadow-2xl">
               <img
-                src={currentAnime?.poster || currentAnime?.coverImg}
+                src={currentAnime?.image || currentAnime?.poster || currentAnime?.coverImg}
                 alt="Portrait Cover"
                 className="w-full h-full object-cover transition-all duration-700"
               />
@@ -157,6 +161,47 @@ const Home = () => {
           </div>
         </div>
       </div>
+
+      {/* TRENDING GRID LAYOUT */}
+      {trendingList && trendingList.length > 0 && (
+        <div className="px-4 md:px-12 mt-20 max-w-[1400px] mx-auto">
+          <div className="flex items-center justify-between mb-8">
+            <h2 className="text-3xl md:text-4xl font-black uppercase tracking-widest text-black md:text-white">
+              Trending Now
+            </h2>
+          </div>
+          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-6">
+            {trendingList.map((anime, idx) => (
+              <div key={anime?.id || idx} className="group cursor-pointer">
+                <div className="relative aspect-[2/3] rounded-xl overflow-hidden mb-3 border border-transparent hover:border-gray-500 transition shadow-lg">
+                  <img
+                    src={anime?.poster || anime?.image || anime?.coverImg}
+                    alt={anime?.name || anime?.title || "Anime Poster"}
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                  />
+                  <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-black/40">
+                    <div className="w-12 h-12 bg-white text-black rounded-full flex items-center justify-center cursor-pointer hover:bg-[#7c3aed] hover:text-white transition">
+                       <Play className="w-6 h-6 fill-current"/>
+                    </div>
+                  </div>
+                </div>
+                <h3 className="font-bold text-sm truncate text-black md:text-white">
+                  {anime?.name || anime?.title || "Unknown Title"}
+                </h3>
+                <div className="flex items-center justify-between mt-1 text-xs text-gray-500">
+                  <span>{anime?.type || "TV"}</span>
+                  {anime?.rating && (
+                    <div className="flex items-center text-yellow-400 font-bold">
+                      <Star className="w-3 h-3 fill-current mr-1" /> {anime?.rating}
+                    </div>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
     </div>
   );
 };
