@@ -54,28 +54,28 @@ const Navbar = () => {
 
   return (
     <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${
-      scrolled ? "bg-background/95 backdrop-blur-md border-b border-border/50" : "bg-gradient-to-b from-background/80 to-transparent"
+      scrolled ? "bg-[#0f0f0f]/80 backdrop-blur-lg border-b border-white/10 shadow-lg" : "bg-gradient-to-b from-black/90 via-black/50 to-transparent"
     }`}>
       <div className="flex items-center justify-between h-16 px-8 md:px-16 lg:px-24">
         <Link to="/" className="flex items-center gap-1 shrink-0">
-          <span className="text-3xl font-display font-black tracking-tighter uppercase">
-            Ani<span className="text-primary">Crew</span>
+          <span className="text-3xl font-display font-black tracking-tighter uppercase text-white drop-shadow-md">
+            Ani<span className="text-red-600">Crew</span>
           </span>
         </Link>
 
         {/* Desktop Nav Links */}
-        <div className="hidden md:flex items-center gap-8 text-sm font-medium text-muted-foreground uppercase tracking-widest">
-          <Link to="/" className="hover:text-primary transition-colors">Home</Link>
-          <Link to="/search" className="hover:text-primary transition-colors">Search</Link>
-          <Link to="/watchlist" className="relative hover:text-primary transition-colors flex items-center gap-1">
+        <div className="hidden md:flex items-center gap-8 text-sm font-medium text-gray-300 uppercase tracking-widest">
+          <Link to="/" className="hover:text-red-500 transition-colors">Home</Link>
+          <Link to="/search" className="hover:text-red-500 transition-colors">Search</Link>
+          <Link to="/watchlist" className="relative hover:text-red-500 transition-colors flex items-center gap-1">
             Watchlist
             {watchlistCount > 0 && (
-              <span className="w-4 h-4 rounded-full bg-primary text-primary-foreground text-[9px] flex items-center justify-center font-bold">
+              <span className="w-4 h-4 rounded-full bg-red-600 text-white text-[9px] flex items-center justify-center font-bold">
                 {watchlistCount}
               </span>
             )}
           </Link>
-          <Link to="/room" className="hover:text-primary transition-colors">Watch Party</Link>
+          <Link to="/room" className="hover:text-red-500 transition-colors">Watch Party</Link>
         </div>
 
         {/* Desktop Search */}
@@ -136,7 +136,7 @@ const Navbar = () => {
         {/* Mobile Menu Toggle */}
         <button
           onClick={() => setMobileMenu(!mobileMenu)}
-          className="md:hidden p-2 text-foreground"
+          className="md:hidden p-2 text-white"
         >
           {mobileMenu ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
         </button>
@@ -144,26 +144,26 @@ const Navbar = () => {
 
       {/* Mobile Menu */}
       {mobileMenu && (
-        <div className="md:hidden bg-card border-t border-border p-6 animate-fade-in">
+        <div className="md:hidden bg-[#0f0f0f]/95 backdrop-blur-lg border-t border-white/10 p-6 animate-fade-in">
           <form onSubmit={handleSearch} className="mb-5">
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
               <input
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 placeholder="Search anime..."
-                className="w-full pl-10 pr-4 py-2.5 rounded bg-secondary border border-border text-foreground text-sm
-                  placeholder:text-muted-foreground focus:outline-none focus:border-primary/50 transition-all"
+                className="w-full pl-10 pr-4 py-2.5 rounded bg-black/50 border border-white/20 text-white text-sm
+                  placeholder:text-gray-500 focus:outline-none focus:border-red-500/50 transition-all"
               />
             </div>
           </form>
-          <div className="flex flex-col gap-4 text-sm font-medium uppercase tracking-widest text-muted-foreground">
-            <Link to="/" onClick={() => setMobileMenu(false)} className="hover:text-primary transition-colors">Home</Link>
-            <Link to="/search" onClick={() => setMobileMenu(false)} className="hover:text-primary transition-colors">Search</Link>
-            <Link to="/watchlist" onClick={() => setMobileMenu(false)} className="hover:text-primary transition-colors flex items-center gap-2">
+          <div className="flex flex-col gap-4 text-sm font-medium uppercase tracking-widest text-gray-300">
+            <Link to="/" onClick={() => setMobileMenu(false)} className="hover:text-red-500 transition-colors">Home</Link>
+            <Link to="/search" onClick={() => setMobileMenu(false)} className="hover:text-red-500 transition-colors">Search</Link>
+            <Link to="/watchlist" onClick={() => setMobileMenu(false)} className="hover:text-red-500 transition-colors flex items-center gap-2">
               Watchlist {watchlistCount > 0 && `(${watchlistCount})`}
             </Link>
-            <Link to="/room" onClick={() => setMobileMenu(false)} className="hover:text-primary transition-colors">Watch Party</Link>
+            <Link to="/room" onClick={() => setMobileMenu(false)} className="hover:text-red-500 transition-colors">Watch Party</Link>
           </div>
         </div>
       )}
