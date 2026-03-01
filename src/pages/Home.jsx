@@ -11,7 +11,7 @@ const Home = () => {
   useEffect(() => {
     const fetchAnimeData = async () => {
       try {
-        const response = await fetch("https://nutty-anna-diane-obito13038gmailom-0765f8ba.koyeb.app/api/anime/home");
+        const response = await fetch("https://obitoapi-3ef566a3b4f6.herokuapp.com/api/anime/home");
         if (!response.ok) {
           throw new Error("Failed to fetch");
         }
