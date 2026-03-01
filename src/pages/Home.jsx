@@ -2,8 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { Play, Star, Heart, Search, Bell, User, LayoutDashboard, ChevronRight, ChevronLeft } from 'lucide-react';
 
 const Home = () => {
-  const [heroAnimeList, setHeroAnimeList] = useState([]);
-  const [trendingList, setTrendingList] = useState([]);
+  const [spotlight, setSpotlight] = useState([]);
+  const [trending, setTrending] = useState([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -17,12 +17,8 @@ const Home = () => {
         }
         const data = await response.json();
 
-        // Ensure data is strictly an array
-        const spotlightData = data?.data?.spotlight || data?.spotlightAnimes || [];
-        const trendingData = data?.data?.trending || data?.trending || [];
-
-        setHeroAnimeList(Array.isArray(spotlightData) ? spotlightData : []);
-        setTrendingList(Array.isArray(trendingData) ? trendingData : []);
+        setSpotlight(data?.data?.spotlight || []);
+        setTrending(data?.data?.trending || []);
       } catch (err) {
         setError("Error connecting to database");
       } finally {
@@ -35,19 +31,19 @@ const Home = () => {
 
   // Auto-Slider Logic (Changes every 5 seconds)
   useEffect(() => {
-    if (heroAnimeList.length === 0) return;
+    if (spotlight.length === 0) return;
     const timer = setInterval(() => {
-      setCurrentIndex((prevIndex) => (prevIndex + 1) % heroAnimeList.length);
+      setCurrentIndex((prevIndex) => (prevIndex + 1) % spotlight.length);
     }, 5000);
     return () => clearInterval(timer);
-  }, [heroAnimeList.length]);
+  }, [spotlight.length]);
 
   if (isLoading) {
     return (
       <div className="min-h-screen bg-[#0d0d0f] text-white flex items-center justify-center">
         <div className="flex flex-col items-center">
           <div className="w-12 h-12 border-4 border-white border-t-transparent rounded-full animate-spin"></div>
-          <p className="mt-4 font-bold tracking-widest uppercase">Summoning Anime...</p>
+          <p className="mt-4 font-bold tracking-widest uppercase">Loading...</p>
         </div>
       </div>
     );
@@ -61,7 +57,7 @@ const Home = () => {
     );
   }
 
-  if (!heroAnimeList || heroAnimeList.length === 0) {
+  if (!spotlight || spotlight.length === 0) {
     return (
       <div className="min-h-screen bg-[#e5e7eb] md:bg-[#0d0d0f] text-black md:text-white flex items-center justify-center">
         <p className="text-xl font-bold text-center px-4">No anime found. Please upload from the Admin Panel.</p>
@@ -69,10 +65,10 @@ const Home = () => {
     );
   }
 
-  const currentAnime = heroAnimeList[currentIndex];
+  const currentAnime = spotlight[currentIndex];
 
-  const nextSlide = () => setCurrentIndex((prev) => (prev + 1) % heroAnimeList.length);
-  const prevSlide = () => setCurrentIndex((prev) => (prev - 1 + heroAnimeList.length) % heroAnimeList.length);
+  const nextSlide = () => setCurrentIndex((prev) => (prev + 1) % spotlight.length);
+  const prevSlide = () => setCurrentIndex((prev) => (prev - 1 + spotlight.length) % spotlight.length);
 
   return (
     <div className="min-h-screen bg-[#e5e7eb] md:bg-[#0d0d0f] text-black md:text-white font-sans pb-20">
@@ -98,7 +94,7 @@ const Home = () => {
 
         {/* BIG TEXT */}
         <h2 className="text-5xl md:text-[6rem] font-black uppercase tracking-tighter leading-[0.9] mb-8 text-black md:text-gray-200 transition-all duration-500">
-          {currentAnime?.name || currentAnime?.title} <br className="hidden md:block"/>
+          {currentAnime?.title} <br className="hidden md:block"/>
           <span className="text-gray-500 text-4xl md:text-[5rem]">{currentAnime?.jname || currentAnime?.subtitle || currentAnime?.type || "AWAKENING"}</span>
         </h2>
 
@@ -107,7 +103,7 @@ const Home = () => {
           {/* Left Big Landscape Image */}
           <div className="lg:col-span-8 relative h-[250px] md:h-[550px] rounded-tl-[3rem] rounded-br-[3rem] md:rounded-tl-[5rem] md:rounded-bl-[2rem] md:rounded-tr-[2rem] md:rounded-br-[5rem] overflow-hidden shadow-2xl group">
             <img
-              src={currentAnime?.poster || currentAnime?.image || currentAnime?.bannerImg || currentAnime?.coverImg}
+              src={currentAnime?.poster}
               alt="Main Banner"
               className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-105"
             />
@@ -133,7 +129,7 @@ const Home = () => {
             {/* Top Right Portrait Image */}
             <div className="flex-1 rounded-tl-[2rem] rounded-br-[2rem] md:rounded-tl-[4rem] md:rounded-tr-[2rem] md:rounded-bl-[2rem] md:rounded-br-[4rem] overflow-hidden h-[200px] md:h-[300px] shadow-2xl">
               <img
-                src={currentAnime?.image || currentAnime?.poster || currentAnime?.coverImg}
+                src={currentAnime?.poster}
                 alt="Portrait Cover"
                 className="w-full h-full object-cover transition-all duration-700"
               />
@@ -163,7 +159,7 @@ const Home = () => {
       </div>
 
       {/* TRENDING GRID LAYOUT */}
-      {trendingList && trendingList.length > 0 && (
+      {trending && trending.length > 0 && (
         <div className="px-4 md:px-12 mt-20 max-w-[1400px] mx-auto">
           <div className="flex items-center justify-between mb-8">
             <h2 className="text-3xl md:text-4xl font-black uppercase tracking-widest text-black md:text-white">
@@ -171,12 +167,12 @@ const Home = () => {
             </h2>
           </div>
           <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-6">
-            {trendingList.map((anime, idx) => (
+            {trending.map((anime, idx) => (
               <div key={anime?.id || idx} className="group cursor-pointer">
                 <div className="relative aspect-[2/3] rounded-xl overflow-hidden mb-3 border border-transparent hover:border-gray-500 transition shadow-lg">
                   <img
-                    src={anime?.poster || anime?.image || anime?.coverImg}
-                    alt={anime?.name || anime?.title || "Anime Poster"}
+                    src={anime?.poster}
+                    alt={anime?.title || "Anime Poster"}
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                   />
                   <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-black/40">
@@ -186,7 +182,7 @@ const Home = () => {
                   </div>
                 </div>
                 <h3 className="font-bold text-sm truncate text-black md:text-white">
-                  {anime?.name || anime?.title || "Unknown Title"}
+                  {anime?.title || "Unknown Title"}
                 </h3>
                 <div className="flex items-center justify-between mt-1 text-xs text-gray-500">
                   <span>{anime?.type || "TV"}</span>
