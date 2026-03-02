@@ -5,37 +5,27 @@
 @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@300;400;500;600;700;800;900&display=swap');
 
 @layer base {
-  :root {
+  :root, [data-theme="crimson"] {
     --background: 0 0% 2%;
     --foreground: 0 0% 95%;
-
     --card: 0 0% 7%;
     --card-foreground: 0 0% 95%;
-
     --popover: 0 0% 7%;
     --popover-foreground: 0 0% 95%;
-
     --primary: 0 72% 51%;
     --primary-foreground: 0 0% 100%;
-
     --secondary: 0 0% 10%;
     --secondary-foreground: 0 0% 80%;
-
     --muted: 0 0% 12%;
     --muted-foreground: 0 0% 50%;
-
     --accent: 0 72% 51%;
     --accent-foreground: 0 0% 100%;
-
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
-
     --border: 0 0% 15%;
     --input: 0 0% 15%;
     --ring: 0 72% 51%;
-
     --radius: 0.5rem;
-
     --sidebar-background: 0 0% 5%;
     --sidebar-foreground: 0 0% 90%;
     --sidebar-primary: 0 72% 51%;
@@ -44,8 +34,6 @@
     --sidebar-accent-foreground: 0 0% 90%;
     --sidebar-border: 0 0% 15%;
     --sidebar-ring: 0 72% 51%;
-
-    /* Custom tokens */
     --neon-purple: 0 72% 51%;
     --neon-cyan: 0 0% 95%;
     --neon-pink: 0 72% 51%;
@@ -55,6 +43,71 @@
     --gradient-card: linear-gradient(145deg, hsl(0 0% 9%), hsl(0 0% 5%));
     --shadow-neon: 0 0 20px hsl(0 72% 51% / 0.3);
     --shadow-neon-lg: 0 0 40px hsl(0 72% 51% / 0.2), 0 0 80px hsl(0 72% 51% / 0.1);
+  }
+
+  [data-theme="ocean"] {
+    --primary: 200 80% 50%;
+    --accent: 200 80% 50%;
+    --ring: 200 80% 50%;
+    --sidebar-primary: 200 80% 50%;
+    --sidebar-ring: 200 80% 50%;
+    --neon-purple: 200 80% 50%;
+    --neon-pink: 200 80% 50%;
+    --gradient-primary: linear-gradient(135deg, hsl(200 80% 50%), hsl(210 70% 38%));
+    --shadow-neon: 0 0 20px hsl(200 80% 50% / 0.3);
+    --shadow-neon-lg: 0 0 40px hsl(200 80% 50% / 0.2), 0 0 80px hsl(200 80% 50% / 0.1);
+  }
+
+  [data-theme="emerald"] {
+    --primary: 152 69% 45%;
+    --accent: 152 69% 45%;
+    --ring: 152 69% 45%;
+    --sidebar-primary: 152 69% 45%;
+    --sidebar-ring: 152 69% 45%;
+    --neon-purple: 152 69% 45%;
+    --neon-pink: 152 69% 45%;
+    --gradient-primary: linear-gradient(135deg, hsl(152 69% 45%), hsl(160 60% 32%));
+    --shadow-neon: 0 0 20px hsl(152 69% 45% / 0.3);
+    --shadow-neon-lg: 0 0 40px hsl(152 69% 45% / 0.2), 0 0 80px hsl(152 69% 45% / 0.1);
+  }
+
+  [data-theme="violet"] {
+    --primary: 270 70% 55%;
+    --accent: 270 70% 55%;
+    --ring: 270 70% 55%;
+    --sidebar-primary: 270 70% 55%;
+    --sidebar-ring: 270 70% 55%;
+    --neon-purple: 270 70% 55%;
+    --neon-pink: 270 70% 55%;
+    --gradient-primary: linear-gradient(135deg, hsl(270 70% 55%), hsl(280 60% 40%));
+    --shadow-neon: 0 0 20px hsl(270 70% 55% / 0.3);
+    --shadow-neon-lg: 0 0 40px hsl(270 70% 55% / 0.2), 0 0 80px hsl(270 70% 55% / 0.1);
+  }
+
+  [data-theme="sunset"] {
+    --primary: 25 95% 55%;
+    --accent: 25 95% 55%;
+    --ring: 25 95% 55%;
+    --sidebar-primary: 25 95% 55%;
+    --sidebar-ring: 25 95% 55%;
+    --neon-purple: 25 95% 55%;
+    --neon-pink: 25 95% 55%;
+    --gradient-primary: linear-gradient(135deg, hsl(25 95% 55%), hsl(15 85% 42%));
+    --shadow-neon: 0 0 20px hsl(25 95% 55% / 0.3);
+    --shadow-neon-lg: 0 0 40px hsl(25 95% 55% / 0.2), 0 0 80px hsl(25 95% 55% / 0.1);
+  }
+
+  [data-theme="midnight"] {
+    --primary: 220 60% 50%;
+    --accent: 220 60% 50%;
+    --ring: 220 60% 50%;
+    --sidebar-primary: 220 60% 50%;
+    --sidebar-ring: 220 60% 50%;
+    --neon-purple: 220 60% 50%;
+    --neon-pink: 220 60% 50%;
+    --gradient-primary: linear-gradient(135deg, hsl(220 60% 50%), hsl(230 50% 38%));
+    --shadow-neon: 0 0 20px hsl(220 60% 50% / 0.3);
+    --shadow-neon-lg: 0 0 40px hsl(220 60% 50% / 0.2), 0 0 80px hsl(220 60% 50% / 0.1);
   }
 }
 
@@ -83,7 +136,7 @@
 
   .neon-text {
     @apply text-primary;
-    text-shadow: 0 0 10px hsl(0 72% 51% / 0.5);
+    text-shadow: 0 0 10px hsl(var(--primary) / 0.5);
   }
 
   .gradient-text {
@@ -93,7 +146,7 @@
 
   .neon-border {
     @apply border border-primary/30;
-    box-shadow: inset 0 0 20px hsl(0 72% 51% / 0.05), 0 0 15px hsl(0 72% 51% / 0.1);
+    box-shadow: inset 0 0 20px hsl(var(--primary) / 0.05), 0 0 15px hsl(var(--primary) / 0.1);
   }
 
   .anime-card {
@@ -154,5 +207,5 @@
   border-radius: 3px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: hsl(0 72% 51% / 0.5);
+  background: hsl(var(--primary) / 0.5);
 }

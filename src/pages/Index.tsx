@@ -21,9 +21,14 @@ const Index = () => {
       ) : (
         <div className="h-[60vh] flex items-center justify-center">
           <div className="text-center">
-            <h1 className="text-7xl md:text-9xl font-display font-black uppercase tracking-tighter text-foreground mb-3">
-              Ani<span className="text-primary">Crew</span>
-            </h1>
+            <div className="flex items-center justify-center gap-4 mb-3">
+              <div className="w-16 h-16 rounded-2xl bg-primary flex items-center justify-center shadow-neon">
+                <span className="text-primary-foreground font-display font-black text-5xl leading-none">A</span>
+              </div>
+              <h1 className="text-7xl md:text-9xl font-display font-black uppercase tracking-tight text-foreground">
+                nicrew
+              </h1>
+            </div>
             <p className="text-muted-foreground text-lg max-w-lg mx-auto">
               Your ultimate anime & donghua streaming hub
             </p>

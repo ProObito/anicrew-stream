@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { Search, Heart, Users, Menu, X } from "lucide-react";
 import { useSearchSuggestion } from "@/hooks/useAnimeData";
 import { useWatchlistStore } from "@/store/watchlistStore";
+import ThemeSwitcher from "./ThemeSwitcher";
 
 const Navbar = () => {
   const [query, setQuery] = useState("");
@@ -57,9 +58,12 @@ const Navbar = () => {
       scrolled ? "bg-background/95 backdrop-blur-md border-b border-border/50" : "bg-gradient-to-b from-background/80 to-transparent"
     }`}>
       <div className="flex items-center justify-between h-16 px-8 md:px-16 lg:px-24">
-        <Link to="/" className="flex items-center gap-1 shrink-0">
-          <span className="text-3xl font-display font-black tracking-tighter uppercase">
-            Ani<span className="text-primary">Crew</span>
+        <Link to="/" className="flex items-center gap-2 shrink-0 group">
+          <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center shadow-neon">
+            <span className="text-primary-foreground font-display font-black text-lg leading-none">A</span>
+          </div>
+          <span className="text-2xl font-display font-black tracking-tight uppercase text-foreground group-hover:text-primary transition-colors">
+            nicrew
           </span>
         </Link>
 
@@ -133,13 +137,16 @@ const Navbar = () => {
           )}
         </form>
 
-        {/* Mobile Menu Toggle */}
-        <button
-          onClick={() => setMobileMenu(!mobileMenu)}
-          className="md:hidden p-2 text-foreground"
-        >
-          {mobileMenu ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
-        </button>
+        <div className="flex items-center gap-2">
+          <ThemeSwitcher />
+          {/* Mobile Menu Toggle */}
+          <button
+            onClick={() => setMobileMenu(!mobileMenu)}
+            className="md:hidden p-2 text-foreground"
+          >
+            {mobileMenu ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+          </button>
+        </div>
       </div>
 
       {/* Mobile Menu */}
