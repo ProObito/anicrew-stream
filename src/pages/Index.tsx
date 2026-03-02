@@ -38,13 +38,13 @@ const Index = () => {
 
       {/* CONTENT SECTIONS - Pic 3 style rows */}
       <div className="relative z-20 mt-8 flex flex-col gap-4">
-        <AnimeGrid title="🔥 Trending Now" animes={data?.trending} isLoading={isLoading} count={15} />
-        <AnimeGrid title="⚡ Top Airing" animes={data?.topAiring} isLoading={isLoading} count={15} />
-        <AnimeGrid title="📺 Recently Added" animes={data?.latestEpisode} isLoading={isLoading} count={15} variant="landscape" />
-        <AnimeGrid title="🌟 Most Popular" animes={data?.mostPopular} isLoading={isLoading} count={15} />
-        <AnimeGrid title="⭐ Top Rated" animes={data?.mostFavorite} isLoading={isLoading} count={15} />
-        <AnimeGrid title="✅ Recently Finished" animes={data?.latestCompleted} isLoading={isLoading} count={15} />
-        <AnimeGrid title="🎯 Top Upcoming" animes={data?.topUpcoming} isLoading={isLoading} count={15} />
+        <AnimeGrid title="Trending Now" animes={data?.trending} isLoading={isLoading} count={15} />
+        <AnimeGrid title="Top Airing" animes={data?.topAiring} isLoading={isLoading} count={15} />
+        <AnimeGrid title="Recently Added" animes={data?.latestEpisode} isLoading={isLoading} count={15} variant="landscape" />
+        <AnimeGrid title="Most Popular" animes={data?.mostPopular} isLoading={isLoading} count={15} />
+        <AnimeGrid title="Top Rated" animes={data?.mostFavorite} isLoading={isLoading} count={15} />
+        <AnimeGrid title="Recently Finished" animes={data?.latestCompleted} isLoading={isLoading} count={15} />
+        <AnimeGrid title="Top Upcoming" animes={data?.topUpcoming} isLoading={isLoading} count={15} />
       </div>
 
       {/* SCHEDULE SECTION - AniList API */}
