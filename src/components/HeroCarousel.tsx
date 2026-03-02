@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { Link } from "react-router-dom";
 import { Play, Heart, Info, ChevronLeft, ChevronRight } from "lucide-react";
 import { motion } from "framer-motion";
@@ -17,9 +17,16 @@ interface HeroCarouselProps {
   animes: SpotlightAnime[];
 }
 
+const SWIPE_THRESHOLD = 50;
+
 const HeroCarousel = ({ animes }: HeroCarouselProps) => {
   const [current, setCurrent] = useState(0);
   const items = animes.slice(0, 8);
+
+  // Drag/swipe state
+  const dragStartX = useRef(0);
+  const dragDeltaX = useRef(0);
+  const isDragging = useRef(false);
 
   const next = useCallback(() => {
     setCurrent((c) => (c + 1) % items.length);
@@ -34,6 +41,30 @@ const HeroCarousel = ({ animes }: HeroCarouselProps) => {
     return () => clearInterval(timer);
   }, [next]);
 
+  // Pointer handlers for drag/swipe
+  const handlePointerDown = (e: React.PointerEvent) => {
+    isDragging.current = true;
+    dragStartX.current = e.clientX;
+    dragDeltaX.current = 0;
+    (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
+  };
+
+  const handlePointerMove = (e: React.PointerEvent) => {
+    if (!isDragging.current) return;
+    dragDeltaX.current = e.clientX - dragStartX.current;
+  };
+
+  const handlePointerUp = () => {
+    if (!isDragging.current) return;
+    isDragging.current = false;
+    if (dragDeltaX.current < -SWIPE_THRESHOLD) {
+      next();
+    } else if (dragDeltaX.current > SWIPE_THRESHOLD) {
+      prev();
+    }
+    dragDeltaX.current = 0;
+  };
+
   if (!items.length) return null;
 
   const anime = items[current];
@@ -41,19 +72,26 @@ const HeroCarousel = ({ animes }: HeroCarouselProps) => {
   return (
     <div className="relative w-full flex flex-col items-center px-4 md:px-12 pt-20">
       {/* Main Banner */}
-      <div className="relative w-full max-w-7xl h-[350px] md:h-[500px] rounded-[2.5rem] overflow-hidden shadow-[0_20px_50px_rgba(0,0,0,0.5)] group">
+      <div
+        className="relative w-full max-w-7xl h-[350px] md:h-[500px] rounded-[2.5rem] overflow-hidden shadow-[0_20px_50px_rgba(0,0,0,0.5)] group cursor-grab active:cursor-grabbing select-none touch-pan-y"
+        onPointerDown={handlePointerDown}
+        onPointerMove={handlePointerMove}
+        onPointerUp={handlePointerUp}
+        onPointerCancel={handlePointerUp}
+      >
         <img
           key={anime.id}
           src={anime.poster}
           alt={anime.name}
-          className="absolute inset-0 w-full h-full object-cover transition-opacity duration-700"
+          draggable={false}
+          className="absolute inset-0 w-full h-full object-cover transition-opacity duration-700 pointer-events-none"
         />
 
         {/* Gradient overlays */}
-        <div className="absolute inset-0 bg-gradient-to-t from-background via-background/40 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-t from-background via-background/40 to-transparent pointer-events-none" />
 
         {/* Title on banner */}
-        <div className="absolute inset-0 flex items-end justify-center pb-12">
+        <div className="absolute inset-0 flex items-end justify-center pb-12 pointer-events-none">
           <motion.h1
             key={`title-${current}`}
             initial={{ opacity: 0, y: 20 }}
@@ -93,7 +131,7 @@ const HeroCarousel = ({ animes }: HeroCarouselProps) => {
         ))}
       </div>
 
-      {/* Action buttons - Favorite / Watch Now / Learn more */}
+      {/* Action buttons */}
       <motion.div
         key={`actions-${current}`}
         initial={{ opacity: 0, y: 10 }}
