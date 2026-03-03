@@ -127,11 +127,11 @@
 
 @layer components {
   .glass-card {
-    @apply bg-card/60 backdrop-blur-xl border border-glass-border rounded-md;
+    @apply bg-card/40 backdrop-blur-xl border border-border/50 rounded-xl;
   }
 
   .glass-card-hover {
-    @apply glass-card transition-all duration-300 hover:border-primary/40 hover:shadow-neon;
+    @apply glass-card transition-all duration-300 hover:border-primary/30 hover:shadow-neon;
   }
 
   .neon-text {
@@ -150,7 +150,7 @@
   }
 
   .anime-card {
-    @apply overflow-hidden cursor-pointer rounded-md bg-card;
+    @apply overflow-hidden cursor-pointer rounded-xl bg-card/50;
   }
 
   .anime-card-image {
@@ -158,29 +158,29 @@
   }
 
   .section-title {
-    @apply text-xl md:text-2xl font-display font-bold text-foreground uppercase tracking-tight;
+    @apply text-lg md:text-xl font-display font-bold text-foreground uppercase tracking-tight;
   }
 
   .skeleton-pulse {
-    @apply animate-pulse bg-muted rounded-md;
+    @apply animate-pulse bg-muted/50 rounded-xl;
   }
 
   .btn-neon {
-    @apply px-6 py-2.5 rounded font-bold uppercase tracking-wider transition-all duration-300
+    @apply px-6 py-2.5 rounded-xl font-bold uppercase tracking-wider transition-all duration-300
       bg-primary text-primary-foreground
       hover:brightness-110 hover:shadow-neon
       active:scale-95;
   }
 
   .btn-glass {
-    @apply px-6 py-2.5 rounded font-bold uppercase tracking-wider transition-all duration-300
-      bg-secondary/80 backdrop-blur-md text-foreground border border-border
-      hover:bg-secondary hover:border-primary/40
+    @apply px-6 py-2.5 rounded-xl font-bold uppercase tracking-wider transition-all duration-300
+      bg-secondary/60 backdrop-blur-md text-foreground border border-border/50
+      hover:bg-secondary hover:border-primary/30
       active:scale-95;
   }
 
   .btn-accent {
-    @apply px-6 py-2.5 rounded font-bold uppercase tracking-wider transition-all duration-300
+    @apply px-6 py-2.5 rounded-xl font-bold uppercase tracking-wider transition-all duration-300
       bg-primary text-primary-foreground
       hover:brightness-110
       active:scale-95;
