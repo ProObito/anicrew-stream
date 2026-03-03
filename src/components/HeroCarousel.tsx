@@ -1,16 +1,17 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { Link } from "react-router-dom";
-import { Play, Heart, Info, ChevronLeft, ChevronRight } from "lucide-react";
-import { motion } from "framer-motion";
+import { Play, Info, ChevronLeft, ChevronRight } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 
 interface SpotlightAnime {
-  id: string;
+  id: string | number;
   name: string;
   poster: string;
+  bannerImage?: string | null;
   description?: string;
-  rank?: number;
-  episodes?: { sub?: number; dub?: number };
   type?: string;
+  genres?: string[];
+  rating?: string | null;
 }
 
 interface HeroCarouselProps {
@@ -23,143 +24,179 @@ const HeroCarousel = ({ animes }: HeroCarouselProps) => {
   const [current, setCurrent] = useState(0);
   const items = animes.slice(0, 8);
 
-  // Drag/swipe state
   const dragStartX = useRef(0);
   const dragDeltaX = useRef(0);
   const isDragging = useRef(false);
 
-  const next = useCallback(() => {
-    setCurrent((c) => (c + 1) % items.length);
-  }, [items.length]);
-
-  const prev = useCallback(() => {
-    setCurrent((c) => (c - 1 + items.length) % items.length);
-  }, [items.length]);
+  const next = useCallback(() => setCurrent((c) => (c + 1) % items.length), [items.length]);
+  const prev = useCallback(() => setCurrent((c) => (c - 1 + items.length) % items.length), [items.length]);
 
   useEffect(() => {
     const timer = setInterval(next, 7000);
     return () => clearInterval(timer);
   }, [next]);
 
-  // Pointer handlers for drag/swipe
   const handlePointerDown = (e: React.PointerEvent) => {
     isDragging.current = true;
     dragStartX.current = e.clientX;
     dragDeltaX.current = 0;
     (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
   };
-
   const handlePointerMove = (e: React.PointerEvent) => {
     if (!isDragging.current) return;
     dragDeltaX.current = e.clientX - dragStartX.current;
   };
-
   const handlePointerUp = () => {
     if (!isDragging.current) return;
     isDragging.current = false;
-    if (dragDeltaX.current < -SWIPE_THRESHOLD) {
-      next();
-    } else if (dragDeltaX.current > SWIPE_THRESHOLD) {
-      prev();
-    }
+    if (dragDeltaX.current < -SWIPE_THRESHOLD) next();
+    else if (dragDeltaX.current > SWIPE_THRESHOLD) prev();
     dragDeltaX.current = 0;
   };
 
   if (!items.length) return null;
-
   const anime = items[current];
+  const heroImage = anime.bannerImage || anime.poster;
+  const searchLink = `/search?q=${encodeURIComponent(anime.name)}`;
 
   return (
-    <div className="relative w-full flex flex-col items-center px-4 md:px-12 pt-20">
-      {/* Main Banner */}
+    <div className="relative w-full">
+      {/* Full-width hero banner */}
       <div
-        className="relative w-full max-w-7xl h-[350px] md:h-[500px] rounded-[2.5rem] overflow-hidden shadow-[0_20px_50px_rgba(0,0,0,0.5)] group cursor-grab active:cursor-grabbing select-none touch-pan-y"
+        className="relative w-full h-[50vh] md:h-[70vh] lg:h-[80vh] overflow-hidden cursor-grab active:cursor-grabbing select-none touch-pan-y"
         onPointerDown={handlePointerDown}
         onPointerMove={handlePointerMove}
         onPointerUp={handlePointerUp}
         onPointerCancel={handlePointerUp}
       >
-        <img
-          key={anime.id}
-          src={anime.poster}
-          alt={anime.name}
-          draggable={false}
-          className="absolute inset-0 w-full h-full object-cover transition-opacity duration-700 pointer-events-none"
-        />
+        <AnimatePresence mode="wait">
+          <motion.img
+            key={String(anime.id)}
+            src={heroImage}
+            alt={anime.name}
+            draggable={false}
+            initial={{ opacity: 0, scale: 1.05 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.8 }}
+            className="absolute inset-0 w-full h-full object-cover pointer-events-none"
+          />
+        </AnimatePresence>
 
         {/* Gradient overlays */}
-        <div className="absolute inset-0 bg-gradient-to-t from-background via-background/40 to-transparent pointer-events-none" />
+        <div className="absolute inset-0 bg-gradient-to-t from-background via-background/50 to-transparent pointer-events-none" />
+        <div className="absolute inset-0 bg-gradient-to-r from-background/80 via-transparent to-transparent pointer-events-none" />
 
-        {/* Title on banner */}
-        <div className="absolute inset-0 flex items-end justify-center pb-12 pointer-events-none">
-          <motion.h1
-            key={`title-${current}`}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-            className="text-3xl md:text-6xl font-display font-black tracking-wider text-foreground drop-shadow-2xl text-center px-4 uppercase"
-          >
-            {anime.name}
-          </motion.h1>
+        {/* Content overlay - left aligned like reference */}
+        <div className="absolute bottom-0 left-0 right-0 p-6 md:p-12 lg:p-16 pointer-events-none">
+          <div className="max-w-3xl">
+            {/* Genre tags */}
+            {anime.genres && anime.genres.length > 0 && (
+              <motion.div
+                key={`genres-${current}`}
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.4 }}
+                className="flex flex-wrap gap-2 mb-3"
+              >
+                {anime.genres.slice(0, 3).map((g) => (
+                  <span
+                    key={g}
+                    className="px-3 py-1 text-[10px] font-bold uppercase tracking-widest rounded-full border border-primary/50 text-primary bg-primary/10 backdrop-blur-sm"
+                  >
+                    {g}
+                  </span>
+                ))}
+                {anime.rating && (
+                  <span className="px-3 py-1 text-[10px] font-bold uppercase tracking-widest rounded-full bg-primary/20 text-primary backdrop-blur-sm">
+                    ⭐ {anime.rating}
+                  </span>
+                )}
+              </motion.div>
+            )}
+
+            {/* Title */}
+            <motion.h1
+              key={`title-${current}`}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6 }}
+              className="text-3xl md:text-5xl lg:text-6xl font-display font-black text-foreground drop-shadow-2xl uppercase leading-tight mb-3"
+            >
+              {anime.name}
+            </motion.h1>
+
+            {/* Description */}
+            {anime.description && (
+              <motion.p
+                key={`desc-${current}`}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ duration: 0.5, delay: 0.2 }}
+                className="text-sm md:text-base text-muted-foreground max-w-xl line-clamp-2 mb-5"
+              >
+                {anime.description}
+              </motion.p>
+            )}
+
+            {/* Action buttons */}
+            <motion.div
+              key={`actions-${current}`}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.4, delay: 0.3 }}
+              className="flex flex-wrap items-center gap-3 pointer-events-auto"
+            >
+              <Link
+                to={searchLink}
+                className="flex items-center gap-2 bg-primary hover:bg-primary/90 px-7 py-3 rounded-xl text-primary-foreground font-bold tracking-wide transition-all hover:scale-105 shadow-neon"
+              >
+                <Play className="w-5 h-5 fill-current" />
+                Watch Now
+              </Link>
+              <Link
+                to={searchLink}
+                className="flex items-center gap-2 bg-secondary/80 hover:bg-secondary backdrop-blur-md px-7 py-3 rounded-xl text-foreground font-bold tracking-wide border border-border hover:border-primary/40 transition-all"
+              >
+                <Info className="w-5 h-5" />
+                Details
+              </Link>
+            </motion.div>
+          </div>
         </div>
 
-        {/* Arrows */}
+        {/* Nav arrows */}
         <button
           onClick={prev}
-          className="absolute left-6 top-1/2 -translate-y-1/2 bg-background/40 hover:bg-background/80 p-3 rounded-full backdrop-blur-sm transition opacity-0 group-hover:opacity-100 z-10"
+          className="absolute left-4 top-1/2 -translate-y-1/2 bg-background/30 hover:bg-background/60 p-2.5 rounded-full backdrop-blur-sm transition-all opacity-0 hover:opacity-100 focus:opacity-100 z-10 group"
+          style={{ opacity: undefined }}
+          onMouseEnter={(e) => (e.currentTarget.style.opacity = "1")}
+          onMouseLeave={(e) => (e.currentTarget.style.opacity = "0")}
         >
-          <ChevronLeft className="w-8 h-8 text-primary" />
+          <ChevronLeft className="w-6 h-6 text-foreground" />
         </button>
         <button
           onClick={next}
-          className="absolute right-6 top-1/2 -translate-y-1/2 bg-background/40 hover:bg-background/80 p-3 rounded-full backdrop-blur-sm transition opacity-0 group-hover:opacity-100 z-10"
+          className="absolute right-4 top-1/2 -translate-y-1/2 bg-background/30 hover:bg-background/60 p-2.5 rounded-full backdrop-blur-sm transition-all opacity-0 hover:opacity-100 focus:opacity-100 z-10"
+          onMouseEnter={(e) => (e.currentTarget.style.opacity = "1")}
+          onMouseLeave={(e) => (e.currentTarget.style.opacity = "0")}
         >
-          <ChevronRight className="w-8 h-8 text-primary" />
+          <ChevronRight className="w-6 h-6 text-foreground" />
         </button>
       </div>
 
-      {/* Dots */}
-      <div className="flex gap-2 mt-4">
+      {/* Slide indicators - bottom bar style */}
+      <div className="flex justify-center gap-1.5 -mt-8 relative z-10">
         {items.map((_, i) => (
           <button
             key={i}
             onClick={() => setCurrent(i)}
-            className={`h-2.5 w-2.5 rounded-full transition-all duration-500 ${
-              i === current ? "bg-primary scale-125" : "bg-muted-foreground/30 hover:bg-muted-foreground/50"
+            className={`h-1 rounded-full transition-all duration-500 ${
+              i === current ? "w-8 bg-primary" : "w-3 bg-muted-foreground/30 hover:bg-muted-foreground/50"
             }`}
           />
         ))}
       </div>
-
-      {/* Action buttons */}
-      <motion.div
-        key={`actions-${current}`}
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.4, delay: 0.2 }}
-        className="flex flex-wrap justify-center items-center gap-6 mt-6"
-      >
-        <button className="flex items-center space-x-2 text-muted-foreground hover:text-foreground transition group">
-          <Heart className="w-5 h-5 group-hover:text-primary transition-colors" />
-          <span className="font-medium">Favorite</span>
-        </button>
-
-        <Link
-          to={`/anime/${anime.id}`}
-          className="flex items-center space-x-2 bg-primary hover:bg-primary/90 px-10 py-3.5 rounded-full text-primary-foreground shadow-neon transition-all transform hover:scale-105"
-        >
-          <Play className="w-5 h-5 fill-current" />
-          <span className="font-bold tracking-wide">Watch now</span>
-        </Link>
-
-        <Link
-          to={`/anime/${anime.id}`}
-          className="flex items-center space-x-2 text-muted-foreground hover:text-foreground transition"
-        >
-          <Info className="w-5 h-5" />
-          <span className="font-medium">Learn more</span>
-        </Link>
-      </motion.div>
     </div>
   );
 };

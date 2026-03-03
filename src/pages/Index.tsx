@@ -1,4 +1,4 @@
-import { useHomeData } from "@/hooks/useAnimeData";
+import { useAnilistHome } from "@/hooks/useAnilistHome";
 import HeroCarousel from "@/components/HeroCarousel";
 import AnimeGrid from "@/components/AnimeGrid";
 import ScheduleSection from "@/components/ScheduleSection";
@@ -6,54 +6,38 @@ import CommentSection from "@/components/CommentSection";
 import ErrorFallback from "@/components/ErrorFallback";
 
 const Index = () => {
-  const { data, isLoading, isError, refetch } = useHomeData();
+  const { data, isLoading, isError, refetch } = useAnilistHome();
 
   if (isError) return <ErrorFallback message="Failed to load anime data" onRetry={() => refetch()} />;
 
-  const spotlight = data?.spotlightAnimes ?? [];
+  const spotlight = data?.spotlight ?? [];
 
   return (
-    <div className="pb-10">
-      {/* HERO CAROUSEL - Pic 2 style sliding banner */}
+    <div className="pb-10 min-h-screen">
+      {/* HERO - Full width banner */}
       {isLoading ? (
-        <div className="w-full h-[85vh] skeleton-pulse" />
+        <div className="w-full h-[70vh] skeleton-pulse" />
       ) : spotlight.length > 0 ? (
         <HeroCarousel animes={spotlight} />
-      ) : (
-        <div className="h-[60vh] flex items-center justify-center">
-          <div className="text-center">
-            <div className="flex items-center justify-center gap-4 mb-3">
-              <div className="w-16 h-16 rounded-2xl bg-primary flex items-center justify-center shadow-neon">
-                <span className="text-primary-foreground font-display font-black text-5xl leading-none">A</span>
-              </div>
-              <h1 className="text-7xl md:text-9xl font-display font-black uppercase tracking-tight text-foreground">
-                nicrew
-              </h1>
-            </div>
-            <p className="text-muted-foreground text-lg max-w-lg mx-auto">
-              Your ultimate anime & donghua streaming hub
-            </p>
-          </div>
-        </div>
-      )}
+      ) : null}
 
-      {/* CONTENT SECTIONS - Pic 3 style rows */}
-      <div className="relative z-20 mt-8 flex flex-col gap-4">
-        <AnimeGrid title="Trending Now" animes={data?.trending} isLoading={isLoading} count={15} />
-        <AnimeGrid title="Top Airing" animes={data?.topAiring} isLoading={isLoading} count={15} />
-        <AnimeGrid title="Recently Added" animes={data?.latestEpisode} isLoading={isLoading} count={15} variant="landscape" />
-        <AnimeGrid title="Most Popular" animes={data?.mostPopular} isLoading={isLoading} count={15} />
-        <AnimeGrid title="Top Rated" animes={data?.mostFavorite} isLoading={isLoading} count={15} />
-        <AnimeGrid title="Recently Finished" animes={data?.latestCompleted} isLoading={isLoading} count={15} />
-        <AnimeGrid title="Top Upcoming" animes={data?.topUpcoming} isLoading={isLoading} count={15} />
+      {/* CONTENT SECTIONS */}
+      <div className="relative z-20 mt-10 flex flex-col gap-2">
+        <AnimeGrid title="Trending Now" animes={data?.trending} isLoading={isLoading} count={15} isAnilist />
+        <AnimeGrid title="Top Airing" animes={data?.topAiring} isLoading={isLoading} count={15} isAnilist />
+        <AnimeGrid title="Recently Updated" animes={data?.recentlyUpdated} isLoading={isLoading} count={15} isAnilist />
+        <AnimeGrid title="Most Popular" animes={data?.mostPopular} isLoading={isLoading} count={15} isAnilist />
+        <AnimeGrid title="Top Rated" animes={data?.topRated} isLoading={isLoading} count={15} isAnilist />
+        <AnimeGrid title="Recently Completed" animes={data?.completed} isLoading={isLoading} count={15} isAnilist />
+        <AnimeGrid title="Top Upcoming" animes={data?.upcoming} isLoading={isLoading} count={15} isAnilist />
       </div>
 
-      {/* SCHEDULE SECTION - AniList API */}
+      {/* SCHEDULE */}
       <div className="mt-8">
         <ScheduleSection />
       </div>
 
-      {/* COMMUNITY COMMENTS */}
+      {/* COMMUNITY */}
       <CommentSection />
     </div>
   );
