@@ -1,4 +1,4 @@
-const API_BASE = "https://hianimeapi-1vww.onrender.com";
+const API_BASE = "https://hianime-api-seven-teal.vercel.app";
 
 async function fetchWithRetry(url: string, retries = 3, delay = 3000): Promise<Response> {
   for (let i = 0; i < retries; i++) {
@@ -39,5 +39,5 @@ export async function apiFetch<T>(endpoint: string): Promise<T> {
   return data;
 }
 
-// Wake up the Render API on app load (fire & forget)
-fetchWithRetry(`${API_BASE}/api/v1/home`, 1, 0).catch(() => {});
+// Pre-warm the API on app load (fire & forget)
+fetch(`${API_BASE}/api/v1/home`).catch(() => {});

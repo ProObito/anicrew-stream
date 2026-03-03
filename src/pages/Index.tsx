@@ -2,6 +2,7 @@ import { useHomeData } from "@/hooks/useAnimeData";
 import HeroCarousel from "@/components/HeroCarousel";
 import AnimeGrid from "@/components/AnimeGrid";
 import ScheduleSection from "@/components/ScheduleSection";
+import CommentSection from "@/components/CommentSection";
 import ErrorFallback from "@/components/ErrorFallback";
 
 const Index = () => {
@@ -51,6 +52,9 @@ const Index = () => {
       <div className="mt-8">
         <ScheduleSection />
       </div>
+
+      {/* COMMUNITY COMMENTS */}
+      <CommentSection />
     </div>
   );
 };
