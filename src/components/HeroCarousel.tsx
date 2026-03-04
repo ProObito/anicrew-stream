@@ -57,7 +57,7 @@ const HeroCarousel = ({ animes }: HeroCarouselProps) => {
   if (!items.length) return null;
   const anime = items[current];
   const heroImage = anime.bannerImage || anime.poster;
-  const searchLink = `/search?q=${encodeURIComponent(anime.name)}`;
+  const animeLink = `/anime/${anime.id}`;
 
   return (
     <div className="relative w-full">
@@ -148,14 +148,14 @@ const HeroCarousel = ({ animes }: HeroCarouselProps) => {
               className="flex flex-wrap items-center gap-3 pointer-events-auto"
             >
               <Link
-                to={searchLink}
+                to={animeLink}
                 className="flex items-center gap-2 bg-primary hover:bg-primary/90 px-7 py-3 rounded-xl text-primary-foreground font-bold tracking-wide transition-all hover:scale-105 shadow-neon"
               >
                 <Play className="w-5 h-5 fill-current" />
                 Watch Now
               </Link>
               <Link
-                to={searchLink}
+                to={animeLink}
                 className="flex items-center gap-2 bg-secondary/80 hover:bg-secondary backdrop-blur-md px-7 py-3 rounded-xl text-foreground font-bold tracking-wide border border-border hover:border-primary/40 transition-all"
               >
                 <Info className="w-5 h-5" />
