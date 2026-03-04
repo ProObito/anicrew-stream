@@ -3,16 +3,18 @@ import { ChevronLeft, ChevronRight, ArrowRight } from "lucide-react";
 import AnimeCard from "./AnimeCard";
 import { SkeletonGrid } from "./SkeletonCard";
 import type { AnimeResult } from "@/types/anime";
+import type { AnilistAnime } from "@/hooks/useAnilistHome";
 
 interface AnimeGridProps {
   title: string;
-  animes: AnimeResult[] | undefined;
+  animes: (AnimeResult | AnilistAnime)[] | undefined;
   isLoading?: boolean;
   count?: number;
   variant?: "poster" | "landscape";
+  isAnilist?: boolean;
 }
 
-const AnimeGrid = ({ title, animes, isLoading, count = 12, variant = "poster" }: AnimeGridProps) => {
+const AnimeGrid = ({ title, animes, isLoading, count = 12, variant = "poster", isAnilist }: AnimeGridProps) => {
   const scrollRef = useRef<HTMLDivElement>(null);
 
   const scroll = (dir: "left" | "right") => {
@@ -55,9 +57,29 @@ const AnimeGrid = ({ title, animes, isLoading, count = 12, variant = "poster" }:
         ref={scrollRef}
         className="flex gap-3 overflow-x-auto hide-scrollbar pb-4 pt-1 px-6 md:px-12 lg:px-16"
       >
-        {animes.slice(0, count).map((anime) => (
-          <AnimeCard key={anime.id} anime={anime} variant={variant} />
-        ))}
+        {animes.slice(0, count).map((anime) => {
+          if (isAnilist) {
+            const a = anime as AnilistAnime;
+            return (
+              <AnimeCard
+                key={a.id}
+                anime={{
+                  id: String(a.id),
+                  name: a.name,
+                  poster: a.poster,
+                  duration: a.duration,
+                  type: a.type,
+                  rating: a.rating,
+                  episodes: a.episodes,
+                  jname: a.jname,
+                }}
+                variant={variant}
+                anilistLink
+              />
+            );
+          }
+          return <AnimeCard key={(anime as AnimeResult).id} anime={anime as AnimeResult} variant={variant} />;
+        })}
       </div>
     </section>
   );

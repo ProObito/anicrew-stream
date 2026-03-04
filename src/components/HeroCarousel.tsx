@@ -57,7 +57,7 @@ const HeroCarousel = ({ animes }: HeroCarouselProps) => {
   if (!items.length) return null;
   const anime = items[current];
   const heroImage = anime.bannerImage || anime.poster;
-  const animeLink = `/anime/${anime.id}`;
+  const animeLink = `/anime/anilist/${anime.id}`;
 
   return (
     <div className="relative w-full">

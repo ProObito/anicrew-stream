@@ -9,6 +9,7 @@ import Navbar from "@/components/Navbar";
 const Index = lazy(() => import("./pages/Index"));
 const SearchPage = lazy(() => import("./pages/SearchPage"));
 const AnimeDetailPage = lazy(() => import("./pages/AnimeDetailPage"));
+const AnilistDetailPage = lazy(() => import("./pages/AnilistDetailPage"));
 const WatchPage = lazy(() => import("./pages/WatchPage"));
 const WatchlistPage = lazy(() => import("./pages/WatchlistPage"));
 const RoomPage = lazy(() => import("./pages/RoomPage"));
@@ -41,6 +42,7 @@ const App = () => (
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/search" element={<SearchPage />} />
+            <Route path="/anime/anilist/:id" element={<AnilistDetailPage />} />
             <Route path="/anime/:id" element={<AnimeDetailPage />} />
             <Route path="/watch/:id" element={<WatchPage />} />
             <Route path="/watchlist" element={<WatchlistPage />} />

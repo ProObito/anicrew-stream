@@ -7,9 +7,10 @@ import type { AnimeResult } from "@/types/anime";
 interface AnimeCardProps {
   anime: AnimeResult;
   variant?: "poster" | "landscape";
+  anilistLink?: boolean;
 }
 
-const AnimeCard = ({ anime, variant = "poster" }: AnimeCardProps) => {
+const AnimeCard = ({ anime, variant = "poster", anilistLink }: AnimeCardProps) => {
   const { addToWatchlist, removeFromWatchlist, isInWatchlist } = useWatchlistStore();
   const inList = isInWatchlist(anime.id);
 
@@ -21,7 +22,7 @@ const AnimeCard = ({ anime, variant = "poster" }: AnimeCardProps) => {
   };
 
   const isLandscape = variant === "landscape";
-  const linkTo = `/anime/${anime.id}`;
+  const linkTo = anilistLink ? `/anime/anilist/${anime.id}` : `/anime/${anime.id}`;
 
   return (
     <Link to={linkTo} className="block flex-shrink-0">
