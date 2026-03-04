@@ -63,7 +63,7 @@ const HeroCarousel = ({ animes }: HeroCarouselProps) => {
     <div className="relative w-full">
       {/* Full-width hero banner */}
       <div
-        className="relative w-full h-[50vh] md:h-[70vh] lg:h-[80vh] overflow-hidden cursor-grab active:cursor-grabbing select-none touch-pan-y"
+        className="relative w-full h-[30vh] sm:h-[50vh] md:h-[70vh] lg:h-[80vh] overflow-hidden cursor-grab active:cursor-grabbing select-none touch-pan-y"
         onPointerDown={handlePointerDown}
         onPointerMove={handlePointerMove}
         onPointerUp={handlePointerUp}
@@ -79,7 +79,7 @@ const HeroCarousel = ({ animes }: HeroCarouselProps) => {
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.8 }}
-            className="absolute inset-0 w-full h-full object-cover pointer-events-none"
+            className="absolute inset-0 w-full h-full object-cover sm:object-cover object-center pointer-events-none"
           />
         </AnimatePresence>
 
@@ -88,7 +88,7 @@ const HeroCarousel = ({ animes }: HeroCarouselProps) => {
         <div className="absolute inset-0 bg-gradient-to-r from-background/80 via-transparent to-transparent pointer-events-none" />
 
         {/* Content overlay - left aligned like reference */}
-        <div className="absolute bottom-0 left-0 right-0 p-6 md:p-12 lg:p-16 pointer-events-none">
+        <div className="absolute bottom-0 left-0 right-0 p-4 md:p-12 lg:p-16 pointer-events-none">
           <div className="max-w-3xl">
             {/* Genre tags */}
             {anime.genres && anime.genres.length > 0 && (
@@ -121,7 +121,7 @@ const HeroCarousel = ({ animes }: HeroCarouselProps) => {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6 }}
-              className="text-3xl md:text-5xl lg:text-6xl font-display font-black text-foreground drop-shadow-2xl uppercase leading-tight mb-3"
+              className="text-xl sm:text-3xl md:text-5xl lg:text-6xl font-display font-black text-foreground drop-shadow-2xl uppercase leading-tight mb-2 sm:mb-3"
             >
               {anime.name}
             </motion.h1>
@@ -133,7 +133,7 @@ const HeroCarousel = ({ animes }: HeroCarouselProps) => {
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ duration: 0.5, delay: 0.2 }}
-                className="text-sm md:text-base text-muted-foreground max-w-xl line-clamp-2 mb-5"
+                className="hidden sm:block text-sm md:text-base text-muted-foreground max-w-xl line-clamp-2 mb-5"
               >
                 {anime.description}
               </motion.p>
@@ -149,14 +149,14 @@ const HeroCarousel = ({ animes }: HeroCarouselProps) => {
             >
               <Link
                 to={animeLink}
-                className="flex items-center gap-2 bg-primary hover:bg-primary/90 px-7 py-3 rounded-xl text-primary-foreground font-bold tracking-wide transition-all hover:scale-105 shadow-neon"
+                className="flex items-center gap-2 bg-primary hover:bg-primary/90 px-4 sm:px-7 py-2 sm:py-3 rounded-xl text-primary-foreground font-bold text-sm sm:text-base tracking-wide transition-all hover:scale-105 shadow-neon"
               >
                 <Play className="w-5 h-5 fill-current" />
                 Watch Now
               </Link>
               <Link
                 to={animeLink}
-                className="flex items-center gap-2 bg-secondary/80 hover:bg-secondary backdrop-blur-md px-7 py-3 rounded-xl text-foreground font-bold tracking-wide border border-border hover:border-primary/40 transition-all"
+                className="hidden sm:flex items-center gap-2 bg-secondary/80 hover:bg-secondary backdrop-blur-md px-7 py-3 rounded-xl text-foreground font-bold tracking-wide border border-border hover:border-primary/40 transition-all"
               >
                 <Info className="w-5 h-5" />
                 Details
