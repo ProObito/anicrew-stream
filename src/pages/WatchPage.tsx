@@ -5,7 +5,7 @@ import { motion } from "framer-motion";
 import { useAnimeInfo, useEpisodes, useEpisodeSources } from "@/hooks/useAnimeData";
 import ErrorFallback from "@/components/ErrorFallback";
 
-const SERVERS = ["hd-1", "hd-2"] as const;
+const SERVERS = ["megaplay", "vidwish"] as const;
 const CATEGORIES = ["sub", "dub"] as const;
 
 const WatchPage = () => {
@@ -14,7 +14,7 @@ const WatchPage = () => {
   const navigate = useNavigate();
   const epId = searchParams.get("ep") || "";
 
-  const [server, setServer] = useState<string>("hd-1");
+  const [server, setServer] = useState<string>("megaplay");
   const [category, setCategory] = useState<string>("sub");
   const [triedServers, setTriedServers] = useState<string[]>([]);
 
