@@ -168,7 +168,7 @@ export function useEpisodes(id: string) {
   });
 }
 
-export function useEpisodeSources(episodeId: string, server = "hd-1", category = "sub") {
+export function useEpisodeSources(episodeId: string, server = "megaplay", category = "sub") {
   return useQuery({
     queryKey: ["sources", episodeId, server, category],
     queryFn: () =>
