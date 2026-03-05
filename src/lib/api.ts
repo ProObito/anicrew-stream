@@ -1,4 +1,4 @@
-const API_BASE = "https://hianime-api-seven-teal.vercel.app";
+const API_BASE = "https://hianimeapi-1vww.onrender.com";
 
 async function fetchWithRetry(url: string, retries = 3, delay = 3000): Promise<Response> {
   for (let i = 0; i < retries; i++) {
