@@ -83,6 +83,7 @@ const Navbar = () => {
           </Link>
           <Link to="/room" className="hover:text-primary transition-colors">Watch Party</Link>
           {isAdmin && <Link to="/admin" className="hover:text-primary transition-colors flex items-center gap-1"><Shield className="w-3 h-3" />Admin</Link>}
+        </div>
 
         {/* Desktop Search */}
         <form
@@ -190,6 +191,7 @@ const Navbar = () => {
             ) : (
               <Link to="/auth" onClick={() => setMobileMenu(false)} className="hover:text-primary transition-colors">Login</Link>
             )}
+          </div>
         </div>
       )}
     </nav>
