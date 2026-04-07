@@ -1,10 +1,13 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
-import { Heart, Play, Info, ChevronLeft, ChevronRight } from "lucide-react";
+import { Heart, Play, Download, Edit, ChevronLeft, ChevronRight } from "lucide-react";
 import { motion } from "framer-motion";
 import { useWatchlistStore } from "@/store/watchlistStore";
-import { apiFetch } from "@/lib/api";
+import { useAuth } from "@/hooks/useAuth";
+import { useEpisodeLinks } from "@/hooks/useEpisodeLinks";
+import EpisodeLinkEditor from "@/components/EpisodeLinkEditor";
 import ErrorFallback from "@/components/ErrorFallback";
+import { useState } from "react";
 
 const ANILIST_URL = "https://graphql.anilist.co";
 
