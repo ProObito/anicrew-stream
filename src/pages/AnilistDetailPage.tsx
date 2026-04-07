@@ -8,6 +8,7 @@ import { useEpisodeLinks } from "@/hooks/useEpisodeLinks";
 import EpisodeLinkEditor from "@/components/EpisodeLinkEditor";
 import ErrorFallback from "@/components/ErrorFallback";
 import { useState } from "react";
+import { apiFetch } from "@/lib/api";
 
 const ANILIST_URL = "https://graphql.anilist.co";
 
