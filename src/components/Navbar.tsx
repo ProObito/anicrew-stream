@@ -1,8 +1,9 @@
 import { useState, useRef, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Search, Heart, Users, Menu, X } from "lucide-react";
+import { Search, Heart, Users, Menu, X, LogIn, LogOut, Shield } from "lucide-react";
 import { useSearchSuggestion } from "@/hooks/useAnimeData";
 import { useWatchlistStore } from "@/store/watchlistStore";
+import { useAuth } from "@/hooks/useAuth";
 import ThemeSwitcher from "./ThemeSwitcher";
 
 const Navbar = () => {
@@ -14,6 +15,7 @@ const Navbar = () => {
   const inputRef = useRef<HTMLInputElement>(null);
   const suggestRef = useRef<HTMLDivElement>(null);
   const watchlistCount = useWatchlistStore((s) => s.items.length);
+  const { user, isAdmin, signOut } = useAuth();
 
   const [debouncedQuery, setDebouncedQuery] = useState("");
   useEffect(() => {
@@ -80,7 +82,7 @@ const Navbar = () => {
             )}
           </Link>
           <Link to="/room" className="hover:text-primary transition-colors">Watch Party</Link>
-        </div>
+          {isAdmin && <Link to="/admin" className="hover:text-primary transition-colors flex items-center gap-1"><Shield className="w-3 h-3" />Admin</Link>}
 
         {/* Desktop Search */}
         <form
@@ -138,6 +140,17 @@ const Navbar = () => {
         </form>
 
         <div className="flex items-center gap-2">
+          {user ? (
+            <button onClick={() => signOut()} className="hidden md:flex items-center gap-1 text-muted-foreground hover:text-primary text-xs uppercase tracking-wider font-medium transition">
+              <LogOut className="w-4 h-4" />
+              Logout
+            </button>
+          ) : (
+            <Link to="/auth" className="hidden md:flex items-center gap-1 text-muted-foreground hover:text-primary text-xs uppercase tracking-wider font-medium transition">
+              <LogIn className="w-4 h-4" />
+              Login
+            </Link>
+          )}
           <ThemeSwitcher />
           {/* Mobile Menu Toggle */}
           <button
@@ -171,7 +184,12 @@ const Navbar = () => {
               Watchlist {watchlistCount > 0 && `(${watchlistCount})`}
             </Link>
             <Link to="/room" onClick={() => setMobileMenu(false)} className="hover:text-primary transition-colors">Watch Party</Link>
-          </div>
+            {isAdmin && <Link to="/admin" onClick={() => setMobileMenu(false)} className="hover:text-primary transition-colors">Admin Panel</Link>}
+            {user ? (
+              <button onClick={() => { signOut(); setMobileMenu(false); }} className="hover:text-primary transition-colors text-left">Logout</button>
+            ) : (
+              <Link to="/auth" onClick={() => setMobileMenu(false)} className="hover:text-primary transition-colors">Login</Link>
+            )}
         </div>
       )}
     </nav>
