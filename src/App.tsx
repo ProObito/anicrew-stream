@@ -14,6 +14,7 @@ const WatchPage = lazy(() => import("./pages/WatchPage"));
 const WatchlistPage = lazy(() => import("./pages/WatchlistPage"));
 const RoomPage = lazy(() => import("./pages/RoomPage"));
 const AdminDashboardPage = lazy(() => import("./pages/AdminDashboardPage"));
+const AuthPage = lazy(() => import("./pages/AuthPage"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
 const queryClient = new QueryClient({
@@ -48,6 +49,7 @@ const App = () => (
             <Route path="/watchlist" element={<WatchlistPage />} />
             <Route path="/room" element={<RoomPage />} />
             <Route path="/admin" element={<AdminDashboardPage />} />
+            <Route path="/auth" element={<AuthPage />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </Suspense>

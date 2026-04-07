@@ -63,7 +63,7 @@ const HeroCarousel = ({ animes }: HeroCarouselProps) => {
     <div className="relative w-full">
       {/* Full-width hero banner */}
       <div
-        className="relative w-full h-[30vh] sm:h-[50vh] md:h-[70vh] lg:h-[80vh] overflow-hidden cursor-grab active:cursor-grabbing select-none touch-pan-y"
+        className="relative w-full h-[45vh] sm:h-[60vh] md:h-[75vh] lg:h-[85vh] overflow-hidden cursor-grab active:cursor-grabbing select-none touch-pan-y"
         onPointerDown={handlePointerDown}
         onPointerMove={handlePointerMove}
         onPointerUp={handlePointerUp}
