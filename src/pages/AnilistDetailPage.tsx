@@ -92,11 +92,11 @@ const AnilistDetailPage = () => {
   const navigate = useNavigate();
   const { data: anime, isLoading, isError, refetch } = useAnilistDetail(id || "");
   const { addToWatchlist, removeFromWatchlist, isInWatchlist } = useWatchlistStore();
+  const { isAdmin } = useAuth();
+  const [showEditor, setShowEditor] = useState(false);
+  const [playingEp, setPlayingEp] = useState<number | null>(null);
 
-  const animeName = anime?.title?.english || anime?.title?.romaji || "";
-  const { data: hianimeMatch } = useHianimeSearch(animeName);
-  const hianimeId = hianimeMatch?.id ?? "";
-  const { data: episodes, isLoading: epLoading } = useHianimeEpisodes(hianimeId);
+  const { data: episodeLinks } = useEpisodeLinks(id || "");
 
   if (isLoading) {
     return (
@@ -129,6 +129,8 @@ const AnilistDetailPage = () => {
     rating,
     episodes: { sub: anime.episodes || null, dub: null },
   };
+
+  const currentPlayingLink = episodeLinks?.find((l) => l.episode_number === playingEp);
 
   return (
     <div className="min-h-screen bg-background text-foreground pb-20">
@@ -165,63 +167,124 @@ const AnilistDetailPage = () => {
             <span className="font-medium">{inList ? "In Watchlist" : "Favorite"}</span>
           </button>
 
-          {episodes && episodes.length > 0 && (
+          {episodeLinks && episodeLinks.length > 0 && (
             <button
-              onClick={() => navigate(`/watch/${hianimeId}?ep=${episodes[0].episodeId}`)}
+              onClick={() => setPlayingEp(episodeLinks[0].episode_number)}
               className="flex items-center space-x-2 bg-primary hover:bg-primary/90 px-10 py-3.5 rounded-full text-primary-foreground shadow-neon transition-all transform hover:scale-105"
             >
               <Play className="w-5 h-5 fill-current" />
               <span className="font-bold tracking-wide uppercase">Watch now</span>
             </button>
           )}
+
+          {isAdmin && (
+            <button
+              onClick={() => setShowEditor(!showEditor)}
+              className="flex items-center space-x-2 bg-secondary hover:bg-secondary/80 px-6 py-3.5 rounded-full text-foreground border border-border transition-all"
+            >
+              <Edit className="w-5 h-5" />
+              <span className="font-bold tracking-wide uppercase text-sm">{showEditor ? "Close Editor" : "Edit Episodes"}</span>
+            </button>
+          )}
         </motion.div>
       </div>
+
+      {/* Admin Editor */}
+      {isAdmin && showEditor && (
+        <div className="w-full max-w-4xl mx-auto px-4 md:px-12 mt-8">
+          <EpisodeLinkEditor anilistId={String(id)} animeName={name} />
+        </div>
+      )}
+
+      {/* Video Player */}
+      {currentPlayingLink?.embed_url && (
+        <div className="w-full max-w-7xl mx-auto px-4 md:px-12 mt-8">
+          <div className="w-full aspect-video rounded-2xl overflow-hidden border border-border shadow-2xl">
+            <iframe
+              src={currentPlayingLink.embed_url}
+              className="w-full h-full"
+              allowFullScreen
+              allow="autoplay; encrypted-media; picture-in-picture"
+              title={`${name} - Episode ${currentPlayingLink.episode_number}`}
+            />
+          </div>
+          <div className="flex items-center justify-between mt-3">
+            <p className="text-sm text-muted-foreground">
+              Playing: <span className="text-foreground font-bold">Episode {currentPlayingLink.episode_number}</span>
+              {currentPlayingLink.title && ` — ${currentPlayingLink.title}`}
+            </p>
+            {currentPlayingLink.drive_url && (
+              <a
+                href={currentPlayingLink.drive_url}
+                target="_blank"
+                rel="noreferrer"
+                className="flex items-center gap-2 bg-secondary hover:bg-secondary/80 px-4 py-2 rounded-lg text-foreground text-sm font-medium border border-border transition"
+              >
+                <Download className="w-4 h-4" />
+                Download
+              </a>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* CONTENT */}
       <div className="w-full max-w-7xl mx-auto px-4 md:px-12 grid grid-cols-1 lg:grid-cols-12 gap-10 mt-12">
         {/* Episodes */}
         <div className="lg:col-span-8">
           <h2 className="text-2xl font-display font-bold mb-6 text-foreground uppercase tracking-tight">Episodes</h2>
-          {!hianimeId ? (
-            <div className="text-muted-foreground flex items-center gap-2">
-              <div className="w-4 h-4 border-2 border-primary border-t-transparent rounded-full animate-spin" />
-              Finding episodes...
-            </div>
-          ) : epLoading ? (
+          {episodeLinks && episodeLinks.length > 0 ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-              {[1, 2, 3, 4].map((i) => (
-                <div key={i} className="animate-pulse">
-                  <div className="aspect-video bg-muted rounded-xl mb-3" />
-                  <div className="h-4 bg-muted rounded w-3/4 mb-2" />
-                  <div className="h-3 bg-muted rounded w-1/2" />
-                </div>
-              ))}
-            </div>
-          ) : episodes && episodes.length > 0 ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-              {episodes.map((ep: any) => (
-                <div
-                  key={ep.episodeId}
-                  onClick={() => navigate(`/watch/${hianimeId}?ep=${ep.episodeId}`)}
-                  className="group cursor-pointer flex flex-col p-2 rounded-2xl transition-all hover:bg-secondary"
-                >
-                  <div className="relative aspect-video rounded-xl overflow-hidden mb-3 bg-card border border-border">
-                    <img src={poster} alt={ep.title} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 opacity-70 group-hover:opacity-100" />
-                    <div className="absolute inset-0 flex items-center justify-center">
-                      <div className="bg-background/40 p-3 rounded-full group-hover:bg-primary/90 transition-all duration-300 backdrop-blur-md border border-border group-hover:scale-110">
-                        <Play className="w-6 h-6 ml-0.5 fill-current text-foreground" />
+              {episodeLinks.map((link) => {
+                const isActive = playingEp === link.episode_number;
+                return (
+                  <div
+                    key={link.id}
+                    onClick={() => setPlayingEp(link.episode_number)}
+                    className={`group cursor-pointer flex flex-col p-2 rounded-2xl transition-all ${
+                      isActive ? "bg-secondary ring-2 ring-primary" : "hover:bg-secondary"
+                    }`}
+                  >
+                    <div className="relative aspect-video rounded-xl overflow-hidden mb-3 bg-card border border-border">
+                      <img src={poster} alt={link.title || ""} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 opacity-70 group-hover:opacity-100" />
+                      <div className="absolute inset-0 flex items-center justify-center">
+                        <div className={`p-3 rounded-full transition-all duration-300 backdrop-blur-md border border-border group-hover:scale-110 ${
+                          isActive ? "bg-primary/90" : "bg-background/40 group-hover:bg-primary/90"
+                        }`}>
+                          <Play className="w-6 h-6 ml-0.5 fill-current text-foreground" />
+                        </div>
                       </div>
+                      {isActive && (
+                        <div className="absolute top-2 left-2 bg-primary text-primary-foreground text-xs font-bold px-2 py-1 rounded">
+                          Now Playing
+                        </div>
+                      )}
+                    </div>
+                    <div className="px-1 flex items-center justify-between">
+                      <div className="min-w-0">
+                        <h3 className={`font-semibold text-lg truncate ${isActive ? "text-primary" : "text-foreground/80 group-hover:text-foreground"}`}>
+                          Episode {link.episode_number}
+                        </h3>
+                        <p className="text-sm text-muted-foreground mt-0.5">{link.title || name}</p>
+                      </div>
+                      {link.drive_url && (
+                        <a
+                          href={link.drive_url}
+                          target="_blank"
+                          rel="noreferrer"
+                          onClick={(e) => e.stopPropagation()}
+                          className="text-primary hover:text-primary/80 p-2"
+                        >
+                          <Download className="w-5 h-5" />
+                        </a>
+                      )}
                     </div>
                   </div>
-                  <div className="px-1">
-                    <h3 className="font-semibold text-lg truncate text-foreground/80 group-hover:text-foreground">{name}</h3>
-                    <p className="text-sm text-muted-foreground mt-0.5">Episode {ep.number} • {ep.title}</p>
-                  </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           ) : (
-            <p className="text-muted-foreground">No episodes available yet.</p>
+            <p className="text-muted-foreground">No episodes available yet. {isAdmin && "Use the Edit button above to add episodes."}</p>
           )}
         </div>
 
