@@ -18,33 +18,39 @@ export type Database = {
         Row: {
           added_by: string | null
           anilist_id: string
+          audio_tracks: Json | null
           created_at: string
           drive_url: string | null
           embed_url: string | null
           episode_number: number
           id: string
+          subtitle_tracks: Json | null
           title: string | null
           updated_at: string
         }
         Insert: {
           added_by?: string | null
           anilist_id: string
+          audio_tracks?: Json | null
           created_at?: string
           drive_url?: string | null
           embed_url?: string | null
           episode_number: number
           id?: string
+          subtitle_tracks?: Json | null
           title?: string | null
           updated_at?: string
         }
         Update: {
           added_by?: string | null
           anilist_id?: string
+          audio_tracks?: Json | null
           created_at?: string
           drive_url?: string | null
           embed_url?: string | null
           episode_number?: number
           id?: string
+          subtitle_tracks?: Json | null
           title?: string | null
           updated_at?: string
         }

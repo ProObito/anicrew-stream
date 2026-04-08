@@ -26,9 +26,11 @@ export function useUpsertEpisodeLink() {
       title?: string;
       embed_url?: string;
       drive_url?: string;
+      subtitle_tracks?: any[];
+      audio_tracks?: any[];
     }) => {
       const { data: { user } } = await supabase.auth.getUser();
-      const { error } = await supabase.from("episode_links").upsert(
+      const { error } = await (supabase.from("episode_links") as any).upsert(
         { ...link, added_by: user?.id },
         { onConflict: "anilist_id,episode_number" }
       );
