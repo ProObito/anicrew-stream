@@ -103,36 +103,25 @@ async function searchAnime(query: string) {
   const html = await resp.text();
 
   const results: { title: string; id: string; url: string }[] = [];
-  // Parse film items from HTML
-  const itemRegex =
-    /<div class="flw-item"[\s\S]*?<a[^>]+href="([^"]+)"[^>]*title="([^"]*)"[\s\S]*?<\/div>\s*<\/div>\s*<\/div>/g;
+  const seen = new Set<string>();
+
+  // Match all anchor tags with href containing /watch/ and a title attribute
+  const linkRegex = /href="(\/[^"]*)"[^>]*title="([^"]+)"/g;
   let match;
-  while ((match = itemRegex.exec(html)) !== null && results.length < 10) {
+  while ((match = linkRegex.exec(html)) !== null && results.length < 15) {
     const href = match[1];
     const title = match[2];
-    const animeId = href.split("/").pop()?.split("?")[0] || "";
+    // Only anime watch links
+    if (!href.includes("?ref=search") && !href.startsWith("/watch/")) continue;
+    const cleanHref = href.split("?")[0];
+    const animeId = cleanHref.split("/").pop() || "";
+    if (!animeId || seen.has(animeId)) continue;
+    seen.add(animeId);
     results.push({
-      title,
+      title: title.replace(/&#39;/g, "'").replace(/&amp;/g, "&"),
       id: animeId,
-      url: `${BASE_URL}${href}`,
+      url: `${BASE_URL}${cleanHref}`,
     });
-  }
-
-  // Fallback: simpler regex
-  if (results.length === 0) {
-    const simpleRegex = /href="\/([^"]+)"[^>]*title="([^"]+)"/g;
-    while (
-      (match = simpleRegex.exec(html)) !== null &&
-      results.length < 10
-    ) {
-      if (match[1].includes("watch/") || match[1].includes("-")) {
-        results.push({
-          title: match[2],
-          id: match[1].split("/").pop()?.split("?")[0] || "",
-          url: `${BASE_URL}/${match[1]}`,
-        });
-      }
-    }
   }
 
   return results;
