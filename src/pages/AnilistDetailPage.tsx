@@ -208,22 +208,46 @@ const AnilistDetailPage = () => {
               title={`${name} - Episode ${currentPlayingLink.episode_number}`}
             />
           </div>
-          <div className="flex items-center justify-between mt-3">
+          <div className="flex flex-wrap items-center justify-between gap-3 mt-3">
             <p className="text-sm text-muted-foreground">
               Playing: <span className="text-foreground font-bold">Episode {currentPlayingLink.episode_number}</span>
               {currentPlayingLink.title && ` — ${currentPlayingLink.title}`}
             </p>
-            {currentPlayingLink.drive_url && (
-              <a
-                href={currentPlayingLink.drive_url}
-                target="_blank"
-                rel="noreferrer"
-                className="flex items-center gap-2 bg-secondary hover:bg-secondary/80 px-4 py-2 rounded-lg text-foreground text-sm font-medium border border-border transition"
-              >
-                <Download className="w-4 h-4" />
-                Download
-              </a>
-            )}
+            <div className="flex items-center gap-3">
+              {/* Subtitle selector */}
+              {(currentPlayingLink as any).subtitle_tracks?.length > 0 && (
+                <div className="flex items-center gap-1.5">
+                  <Subtitles className="w-4 h-4 text-muted-foreground" />
+                  <select className="bg-secondary border border-border rounded-lg px-2 py-1 text-xs text-foreground focus:outline-none focus:border-primary">
+                    {(currentPlayingLink as any).subtitle_tracks.map((t: any, i: number) => (
+                      <option key={i} value={t.url}>{t.label}</option>
+                    ))}
+                  </select>
+                </div>
+              )}
+              {/* Audio selector */}
+              {(currentPlayingLink as any).audio_tracks?.length > 0 && (
+                <div className="flex items-center gap-1.5">
+                  <Volume2 className="w-4 h-4 text-muted-foreground" />
+                  <select className="bg-secondary border border-border rounded-lg px-2 py-1 text-xs text-foreground focus:outline-none focus:border-primary">
+                    {(currentPlayingLink as any).audio_tracks.map((t: any, i: number) => (
+                      <option key={i} value={t.url}>{t.label}</option>
+                    ))}
+                  </select>
+                </div>
+              )}
+              {currentPlayingLink.drive_url && (
+                <a
+                  href={currentPlayingLink.drive_url}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="flex items-center gap-2 bg-secondary hover:bg-secondary/80 px-4 py-2 rounded-lg text-foreground text-sm font-medium border border-border transition"
+                >
+                  <Download className="w-4 h-4" />
+                  Download
+                </a>
+              )}
+            </div>
           </div>
         </div>
       )}
