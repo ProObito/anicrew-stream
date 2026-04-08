@@ -1,6 +1,6 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
-import { Heart, Play, Download, Edit, ChevronLeft, ChevronRight } from "lucide-react";
+import { Heart, Play, Download, Edit, ChevronLeft, ChevronRight, Subtitles, Volume2 } from "lucide-react";
 import { motion } from "framer-motion";
 import { useWatchlistStore } from "@/store/watchlistStore";
 import { useAuth } from "@/hooks/useAuth";
