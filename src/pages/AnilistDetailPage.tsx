@@ -198,59 +198,40 @@ const AnilistDetailPage = () => {
         </div>
       )}
 
-      {/* Video Player */}
+      {/* CrewWatch Video Player */}
       {currentPlayingLink?.embed_url && (
         <div className="w-full max-w-7xl mx-auto px-4 md:px-12 mt-8">
-          <div className="w-full aspect-video rounded-2xl overflow-hidden border border-border shadow-2xl">
-            <iframe
-              src={currentPlayingLink.embed_url}
-              className="w-full h-full"
-              allowFullScreen
-              allow="autoplay; encrypted-media; picture-in-picture"
-              title={`${name} - Episode ${currentPlayingLink.episode_number}`}
-            />
-          </div>
-          <div className="flex flex-wrap items-center justify-between gap-3 mt-3">
-            <p className="text-sm text-muted-foreground">
-              Playing: <span className="text-foreground font-bold">Episode {currentPlayingLink.episode_number}</span>
-              {currentPlayingLink.title && ` — ${currentPlayingLink.title}`}
-            </p>
-            <div className="flex items-center gap-3">
-              {/* Subtitle selector */}
-              {(currentPlayingLink as any).subtitle_tracks?.length > 0 && (
-                <div className="flex items-center gap-1.5">
-                  <Subtitles className="w-4 h-4 text-muted-foreground" />
-                  <select className="bg-secondary border border-border rounded-lg px-2 py-1 text-xs text-foreground focus:outline-none focus:border-primary">
-                    {(currentPlayingLink as any).subtitle_tracks.map((t: any, i: number) => (
-                      <option key={i} value={t.url}>{t.label}</option>
-                    ))}
-                  </select>
-                </div>
-              )}
-              {/* Audio selector */}
-              {(currentPlayingLink as any).audio_tracks?.length > 0 && (
-                <div className="flex items-center gap-1.5">
-                  <Volume2 className="w-4 h-4 text-muted-foreground" />
-                  <select className="bg-secondary border border-border rounded-lg px-2 py-1 text-xs text-foreground focus:outline-none focus:border-primary">
-                    {(currentPlayingLink as any).audio_tracks.map((t: any, i: number) => (
-                      <option key={i} value={t.url}>{t.label}</option>
-                    ))}
-                  </select>
-                </div>
-              )}
-              {currentPlayingLink.drive_url && (
-                <a
-                  href={currentPlayingLink.drive_url}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="flex items-center gap-2 bg-secondary hover:bg-secondary/80 px-4 py-2 rounded-lg text-foreground text-sm font-medium border border-border transition"
-                >
-                  <Download className="w-4 h-4" />
-                  Download
-                </a>
-              )}
-            </div>
-          </div>
+          {(() => {
+            const versions = ((currentPlayingLink as any).subtitle_tracks || []).map((v: any) => ({
+              label: v.label || "Alt",
+              embed_url: v.embed_url || "",
+              drive_url: v.drive_url,
+            }));
+            const currentEmbed = activeVersion > 0 && versions[activeVersion - 1]?.embed_url
+              ? versions[activeVersion - 1].embed_url
+              : currentPlayingLink.embed_url;
+            const currentDrive = activeVersion > 0 && versions[activeVersion - 1]?.drive_url
+              ? versions[activeVersion - 1].drive_url
+              : currentPlayingLink.drive_url;
+
+            const allVersions = [
+              { label: "Sub", embed_url: currentPlayingLink.embed_url, drive_url: currentPlayingLink.drive_url || undefined },
+              ...versions,
+            ];
+
+            return (
+              <CrewWatchPlayer
+                embedUrl={currentEmbed}
+                driveUrl={currentDrive || undefined}
+                title={name}
+                episodeNumber={currentPlayingLink.episode_number}
+                episodeTitle={currentPlayingLink.title || undefined}
+                versions={allVersions.length > 1 ? allVersions : undefined}
+                activeVersionIndex={activeVersion}
+                onVersionChange={(i) => setActiveVersion(i)}
+              />
+            );
+          })()}
         </div>
       )}
 
