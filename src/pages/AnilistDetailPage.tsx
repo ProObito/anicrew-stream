@@ -6,6 +6,7 @@ import { useWatchlistStore } from "@/store/watchlistStore";
 import { useAuth } from "@/hooks/useAuth";
 import { useEpisodeLinks } from "@/hooks/useEpisodeLinks";
 import EpisodeLinkEditor from "@/components/EpisodeLinkEditor";
+import CrewWatchPlayer from "@/components/CrewWatchPlayer";
 import ErrorFallback from "@/components/ErrorFallback";
 import { useState } from "react";
 import { apiFetch } from "@/lib/api";
