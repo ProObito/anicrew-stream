@@ -96,6 +96,7 @@ const AnilistDetailPage = () => {
   const { isAdmin } = useAuth();
   const [showEditor, setShowEditor] = useState(false);
   const [playingEp, setPlayingEp] = useState<number | null>(null);
+  const [activeVersion, setActiveVersion] = useState(0);
 
   const { data: episodeLinks } = useEpisodeLinks(id || "");
 
