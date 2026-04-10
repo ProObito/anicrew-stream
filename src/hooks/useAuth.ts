@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import type { User } from "@supabase/supabase-js";
 
@@ -9,17 +9,38 @@ export function useAuth() {
   const [loading, setLoading] = useState(true);
   const [roles, setRoles] = useState<AppRole[]>([]);
 
+  const fetchRoles = useCallback(async (userId: string) => {
+    try {
+      const { data } = await supabase
+        .from("user_roles")
+        .select("role")
+        .eq("user_id", userId);
+      setRoles((data ?? []).map((r) => r.role));
+    } catch {
+      setRoles([]);
+    }
+  }, []);
+
   useEffect(() => {
+    // Get initial session first
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setUser(session?.user ?? null);
+      if (session?.user) {
+        fetchRoles(session.user.id).then(() => setLoading(false));
+      } else {
+        setLoading(false);
+      }
+    });
+
+    // Then listen for changes - DO NOT await inside callback
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (_event, session) => {
+      (_event, session) => {
         setUser(session?.user ?? null);
         if (session?.user) {
-          // Fetch roles
-          const { data } = await supabase
-            .from("user_roles")
-            .select("role")
-            .eq("user_id", session.user.id);
-          setRoles((data ?? []).map((r) => r.role));
+          // Use setTimeout to avoid blocking the auth state change callback
+          setTimeout(() => {
+            fetchRoles(session.user.id);
+          }, 0);
         } else {
           setRoles([]);
         }
@@ -27,24 +48,8 @@ export function useAuth() {
       }
     );
 
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setUser(session?.user ?? null);
-      if (session?.user) {
-        supabase
-          .from("user_roles")
-          .select("role")
-          .eq("user_id", session.user.id)
-          .then(({ data }) => {
-            setRoles((data ?? []).map((r) => r.role));
-            setLoading(false);
-          });
-      } else {
-        setLoading(false);
-      }
-    });
-
     return () => subscription.unsubscribe();
-  }, []);
+  }, [fetchRoles]);
 
   const isOwner = roles.includes("owner");
   const isAdmin = roles.includes("admin") || isOwner;
@@ -62,7 +67,14 @@ export function useAuth() {
       },
     });
 
-  const signOut = () => supabase.auth.signOut();
+  const signOut = async () => {
+    const { error } = await supabase.auth.signOut();
+    if (!error) {
+      setUser(null);
+      setRoles([]);
+    }
+    return { error };
+  };
 
   return { user, loading, roles, isOwner, isAdmin, signIn, signUp, signOut };
 }
