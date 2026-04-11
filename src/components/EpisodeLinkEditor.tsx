@@ -1,8 +1,7 @@
 import { useState } from "react";
-import { Trash2, Save, ExternalLink, Import, Search, Loader2, Upload } from "lucide-react";
+import { Trash2, Save, ExternalLink, Import, Search, Loader2, Upload, Link2 } from "lucide-react";
 import { useEpisodeLinks, useUpsertEpisodeLink, useDeleteEpisodeLink } from "@/hooks/useEpisodeLinks";
 import { toast } from "sonner";
-import { supabase } from "@/integrations/supabase/client";
 
 interface VideoVersion {
   label: string;
@@ -15,6 +14,32 @@ interface Props {
   animeName: string;
 }
 
+/** Convert any Drive/GoFile/other link to an embeddable URL */
+function toEmbedUrl(url: string): string {
+  if (!url) return "";
+  // Google Drive: /file/d/ID/view → /file/d/ID/preview
+  const driveMatch = url.match(/drive\.google\.com\/file\/d\/([a-zA-Z0-9_-]+)/);
+  if (driveMatch) {
+    return `https://drive.google.com/file/d/${driveMatch[1]}/preview`;
+  }
+  // GoFile embed
+  if (url.includes("gofile.io/d/")) {
+    return url; // GoFile links work directly in iframe
+  }
+  // Already an embed/preview URL or any other URL — use as-is
+  return url;
+}
+
+/** Convert any Drive link to a download/view URL */
+function toDriveViewUrl(url: string): string {
+  if (!url) return "";
+  const driveMatch = url.match(/drive\.google\.com\/file\/d\/([a-zA-Z0-9_-]+)/);
+  if (driveMatch) {
+    return `https://drive.google.com/file/d/${driveMatch[1]}/view`;
+  }
+  return url;
+}
+
 const EpisodeLinkEditor = ({ anilistId, animeName }: Props) => {
   const { data: links, isLoading } = useEpisodeLinks(anilistId);
   const upsert = useUpsertEpisodeLink();
@@ -22,13 +47,10 @@ const EpisodeLinkEditor = ({ anilistId, animeName }: Props) => {
 
   const [epNum, setEpNum] = useState(1);
   const [title, setTitle] = useState("");
-  const [embedUrl, setEmbedUrl] = useState("");
-  const [driveUrl, setDriveUrl] = useState("");
-  // Alternate video versions (sub, dub, hindi etc)
+  const [mainUrl, setMainUrl] = useState(""); // User pastes any Drive/GoFile/embed link
   const [versions, setVersions] = useState<VideoVersion[]>([]);
   const [newVerLabel, setNewVerLabel] = useState("");
-  const [newVerEmbed, setNewVerEmbed] = useState("");
-  const [newVerDrive, setNewVerDrive] = useState("");
+  const [newVerUrl, setNewVerUrl] = useState("");
 
   // Import state
   const [showImport, setShowImport] = useState(false);
@@ -36,15 +58,12 @@ const EpisodeLinkEditor = ({ anilistId, animeName }: Props) => {
   const [searchResults, setSearchResults] = useState<any[]>([]);
   const [selectedAnime, setSelectedAnime] = useState<any>(null);
   const [episodeList, setEpisodeList] = useState<any[]>([]);
-  const [importing, setImporting] = useState(false);
-  const [importingAll, setImportingAll] = useState(false);
   const [searching, setSearching] = useState(false);
   const [loadingEps, setLoadingEps] = useState(false);
-  const [importProgress, setImportProgress] = useState("");
 
   const edgeFnUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/aniwatch-scraper`;
-  const driveFnUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/drive-upload`;
 
+  // Aniwatch search — just gets episode names/numbers
   const handleSearch = async () => {
     if (!importSearch.trim()) return;
     setSearching(true);
@@ -72,130 +91,51 @@ const EpisodeLinkEditor = ({ anilistId, animeName }: Props) => {
     setLoadingEps(false);
   };
 
-  const uploadToDrive = async (fileUrl: string, fileName: string): Promise<{ driveUrl: string; embedUrl: string } | null> => {
-    try {
-      const { data: { session } } = await supabase.auth.getSession();
-      const res = await fetch(driveFnUrl, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${session?.access_token}`,
-          "apikey": import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
-        },
-        body: JSON.stringify({
-          action: "upload_from_url",
-          fileUrl,
-          fileName,
-        }),
-      });
-      const data = await res.json();
-      if (data.error) {
-        console.error("Drive upload error:", data.error);
-        return null;
-      }
-      return { driveUrl: data.driveUrl, embedUrl: data.embedUrl };
-    } catch (e) {
-      console.error("Drive upload failed:", e);
-      return null;
-    }
+  // Import just fills in ep number & title — user adds links manually
+  const handleImportEpisode = (ep: any) => {
+    setEpNum(Number(ep.number));
+    setTitle(ep.title || `Episode ${ep.number}`);
+    setMainUrl("");
+    setVersions([]);
+    toast.success(`Ep ${ep.number} selected — now paste the Drive/GoFile link`);
   };
 
-  const handleImportEpisode = async (ep: any, autoSave = false) => {
-    setImporting(true);
-    setImportProgress(`Fetching sources for Ep ${ep.number}...`);
-    try {
-      const res = await fetch(`${edgeFnUrl}?action=sources&epId=${ep.dataId}`);
-      const data = await res.json();
-
-      const subSources = data.sub;
-      const dubSources = data.dub;
-
-      const m3u8Url = subSources?.sources?.[0]?.file || subSources?.sources?.[0]?.url || "";
-      const dubM3u8 = dubSources?.sources?.[0]?.file || dubSources?.sources?.[0]?.url || "";
-
-      // Upload sub to Drive
-      let subDrive: { driveUrl: string; embedUrl: string } | null = null;
-      if (m3u8Url) {
-        setImportProgress(`Uploading Ep ${ep.number} (Sub) to Drive...`);
-        subDrive = await uploadToDrive(m3u8Url, `${animeName} - Ep ${ep.number} Sub.mp4`);
-      }
-
-      // Upload dub to Drive
-      let dubDrive: { driveUrl: string; embedUrl: string } | null = null;
-      if (dubM3u8) {
-        setImportProgress(`Uploading Ep ${ep.number} (Dub) to Drive...`);
-        dubDrive = await uploadToDrive(dubM3u8, `${animeName} - Ep ${ep.number} Dub.mp4`);
-      }
-
-      // Build versions array for alternate tracks
-      const importedVersions: VideoVersion[] = [];
-      if (dubM3u8 || dubDrive) {
-        importedVersions.push({
-          label: "Dub",
-          embed_url: dubDrive?.embedUrl || dubM3u8,
-          drive_url: dubDrive?.driveUrl,
-        });
-      }
-
-      const mainEmbed = subDrive?.embedUrl || m3u8Url;
-      const mainDrive = subDrive?.driveUrl || "";
-
-      if (autoSave) {
-        // Auto-save directly
+  // Import all — creates empty entries with just titles
+  const handleImportAllTitles = async () => {
+    if (!episodeList.length) return;
+    for (const ep of episodeList) {
+      try {
         await upsert.mutateAsync({
           anilist_id: anilistId,
           episode_number: Number(ep.number),
           title: ep.title || `Episode ${ep.number}`,
-          embed_url: mainEmbed || undefined,
-          drive_url: mainDrive || undefined,
-          subtitle_tracks: importedVersions, // Using subtitle_tracks to store alternate versions
-          audio_tracks: [],
         });
-        toast.success(`Ep ${ep.number} imported & saved!`);
-      } else {
-        setEpNum(Number(ep.number));
-        setTitle(ep.title || `Episode ${ep.number}`);
-        setEmbedUrl(mainEmbed);
-        setDriveUrl(mainDrive);
-        setVersions(importedVersions);
-        toast.success(`Ep ${ep.number} imported! Review and save.`);
-      }
-    } catch (e: any) {
-      toast.error(`Import Ep ${ep.number} failed: ` + e.message);
+      } catch { /* skip duplicates */ }
     }
-    setImporting(false);
-    setImportProgress("");
-  };
-
-  const handleImportAll = async () => {
-    if (!episodeList.length) return;
-    setImportingAll(true);
-    for (const ep of episodeList) {
-      await handleImportEpisode(ep, true);
-    }
-    setImportingAll(false);
-    toast.success("All episodes imported!");
+    toast.success(`${episodeList.length} episode titles imported! Now add links.`);
   };
 
   const handleSave = async () => {
-    if (!embedUrl && !driveUrl) {
-      toast.error("At least one link required");
+    if (!mainUrl) {
+      toast.error("Paste a Drive or embed link");
       return;
     }
+    const embedUrl = toEmbedUrl(mainUrl);
+    const driveUrl = toDriveViewUrl(mainUrl);
+
     try {
       await upsert.mutateAsync({
         anilist_id: anilistId,
         episode_number: epNum,
         title: title || `Episode ${epNum}`,
-        embed_url: embedUrl || undefined,
-        drive_url: driveUrl || undefined,
-        subtitle_tracks: versions, // alternate video versions stored here
+        embed_url: embedUrl,
+        drive_url: driveUrl !== embedUrl ? driveUrl : undefined,
+        subtitle_tracks: versions,
         audio_tracks: [],
       });
       toast.success(`Episode ${epNum} saved!`);
       setTitle("");
-      setEmbedUrl("");
-      setDriveUrl("");
+      setMainUrl("");
       setVersions([]);
       setEpNum((n) => n + 1);
     } catch (err: any) {
@@ -204,11 +144,16 @@ const EpisodeLinkEditor = ({ anilistId, animeName }: Props) => {
   };
 
   const addVersion = () => {
-    if (!newVerEmbed && !newVerDrive) return;
-    setVersions([...versions, { label: newVerLabel || "Version", embed_url: newVerEmbed, drive_url: newVerDrive || undefined }]);
+    if (!newVerUrl) return;
+    const embed = toEmbedUrl(newVerUrl);
+    const drive = toDriveViewUrl(newVerUrl);
+    setVersions([...versions, {
+      label: newVerLabel || "Version",
+      embed_url: embed,
+      drive_url: drive !== embed ? drive : undefined,
+    }]);
     setNewVerLabel("");
-    setNewVerEmbed("");
-    setNewVerDrive("");
+    setNewVerUrl("");
   };
 
   return (
@@ -229,11 +174,11 @@ const EpisodeLinkEditor = ({ anilistId, animeName }: Props) => {
         </button>
       </div>
 
-      {/* Import Panel */}
+      {/* Import Panel — fetches episode names only */}
       {showImport && (
         <div className="bg-secondary/50 border border-border rounded-xl p-4 space-y-4">
           <h4 className="text-sm font-bold text-foreground flex items-center gap-2">
-            <Search className="w-4 h-4" /> Search Aniwatch
+            <Search className="w-4 h-4" /> Search Aniwatch (episode list only)
           </h4>
           <div className="flex gap-2">
             <input
@@ -275,21 +220,14 @@ const EpisodeLinkEditor = ({ anilistId, animeName }: Props) => {
                 </p>
                 {episodeList.length > 0 && (
                   <button
-                    onClick={handleImportAll}
-                    disabled={importingAll || importing}
-                    className="flex items-center gap-2 bg-primary hover:bg-primary/90 text-primary-foreground px-4 py-2 rounded-lg text-xs font-bold transition disabled:opacity-50"
+                    onClick={handleImportAllTitles}
+                    className="flex items-center gap-2 bg-primary hover:bg-primary/90 text-primary-foreground px-4 py-2 rounded-lg text-xs font-bold transition"
                   >
                     <Upload className="w-3 h-3" />
-                    {importingAll ? "Importing..." : `Import All (${episodeList.length})`}
+                    Import All Titles ({episodeList.length})
                   </button>
                 )}
               </div>
-
-              {importProgress && (
-                <div className="flex items-center gap-2 text-xs text-primary mb-2">
-                  <Loader2 className="w-3 h-3 animate-spin" /> {importProgress}
-                </div>
-              )}
 
               {loadingEps ? (
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
@@ -301,8 +239,7 @@ const EpisodeLinkEditor = ({ anilistId, animeName }: Props) => {
                     <button
                       key={ep.dataId}
                       onClick={() => handleImportEpisode(ep)}
-                      disabled={importing || importingAll}
-                      className="bg-background hover:bg-primary/20 border border-border rounded-lg p-2 text-xs font-medium text-foreground transition disabled:opacity-50"
+                      className="bg-background hover:bg-primary/20 border border-border rounded-lg p-2 text-xs font-medium text-foreground transition"
                     >
                       Ep {ep.number}
                     </button>
@@ -339,30 +276,27 @@ const EpisodeLinkEditor = ({ anilistId, animeName }: Props) => {
           </div>
         </div>
         <div>
-          <label className="text-xs text-muted-foreground">Main Embed URL (Drive/iframe)</label>
+          <label className="text-xs text-muted-foreground flex items-center gap-1">
+            <Link2 className="w-3 h-3" /> Video Link (Drive / GoFile / any embed URL)
+          </label>
           <input
             type="url"
-            value={embedUrl}
-            onChange={(e) => setEmbedUrl(e.target.value)}
-            placeholder="https://drive.google.com/file/d/.../preview"
+            value={mainUrl}
+            onChange={(e) => setMainUrl(e.target.value)}
+            placeholder="Paste Drive link, GoFile link, or any embed URL..."
             className="w-full bg-secondary border border-border rounded-lg p-2 text-foreground text-sm focus:outline-none focus:border-primary"
           />
-        </div>
-        <div>
-          <label className="text-xs text-muted-foreground">Drive Download URL</label>
-          <input
-            type="url"
-            value={driveUrl}
-            onChange={(e) => setDriveUrl(e.target.value)}
-            placeholder="https://drive.google.com/file/d/.../view"
-            className="w-full bg-secondary border border-border rounded-lg p-2 text-foreground text-sm focus:outline-none focus:border-primary"
-          />
+          {mainUrl && (
+            <p className="text-xs text-muted-foreground mt-1">
+              Embed: <span className="text-primary">{toEmbedUrl(mainUrl)}</span>
+            </p>
+          )}
         </div>
 
         {/* Alternate Video Versions (Sub/Dub/Hindi etc.) */}
         <div className="border border-border rounded-lg p-3 space-y-2">
           <h4 className="text-xs font-bold text-muted-foreground uppercase tracking-wider">
-            Alternate Versions ({versions.length}) — Sub/Dub/Hindi etc.
+            Alternate Versions ({versions.length}) — Dub/Hindi etc.
           </h4>
           {versions.map((v, i) => (
             <div key={i} className="flex items-center gap-2 text-xs bg-secondary/50 rounded-lg p-2">
@@ -379,21 +313,14 @@ const EpisodeLinkEditor = ({ anilistId, animeName }: Props) => {
               value={newVerLabel}
               onChange={(e) => setNewVerLabel(e.target.value)}
               placeholder="Label (Dub, Hindi...)"
-              className="flex-1 min-w-[100px] bg-background border border-border rounded p-1.5 text-foreground text-xs focus:outline-none focus:border-primary"
+              className="flex-1 min-w-[80px] bg-background border border-border rounded p-1.5 text-foreground text-xs focus:outline-none focus:border-primary"
             />
             <input
               type="url"
-              value={newVerEmbed}
-              onChange={(e) => setNewVerEmbed(e.target.value)}
-              placeholder="Embed URL"
-              className="flex-[2] min-w-[150px] bg-background border border-border rounded p-1.5 text-foreground text-xs focus:outline-none focus:border-primary"
-            />
-            <input
-              type="url"
-              value={newVerDrive}
-              onChange={(e) => setNewVerDrive(e.target.value)}
-              placeholder="Drive URL (optional)"
-              className="flex-[2] min-w-[150px] bg-background border border-border rounded p-1.5 text-foreground text-xs focus:outline-none focus:border-primary"
+              value={newVerUrl}
+              onChange={(e) => setNewVerUrl(e.target.value)}
+              placeholder="Paste Drive/GoFile/embed link"
+              className="flex-[3] min-w-[150px] bg-background border border-border rounded p-1.5 text-foreground text-xs focus:outline-none focus:border-primary"
             />
             <button onClick={addVersion} className="text-primary text-xs font-bold px-2">+Add</button>
           </div>
@@ -433,18 +360,16 @@ const EpisodeLinkEditor = ({ anilistId, animeName }: Props) => {
                       </a>
                     )}
                     {link.drive_url && (
-                      <a href={link.drive_url} target="_blank" rel="noreferrer" className="text-xs text-primary flex items-center gap-1">
+                      <a href={link.drive_url} target="_blank" rel="noreferrer" className="text-xs text-muted-foreground flex items-center gap-1">
                         <ExternalLink className="w-3 h-3" /> Drive
                       </a>
                     )}
-                    <span className="text-xs text-muted-foreground">
-                      {(link as any).subtitle_tracks?.length || 0} versions
-                    </span>
+                    {!link.embed_url && <span className="text-xs text-destructive">No link yet</span>}
                   </div>
                 </div>
                 <button
                   onClick={() => remove.mutate({ id: link.id, anilistId })}
-                  className="text-destructive hover:text-destructive/80 p-1"
+                  className="text-destructive hover:text-destructive/80 p-2"
                 >
                   <Trash2 className="w-4 h-4" />
                 </button>
