@@ -140,11 +140,12 @@ async function getEpisodeList(animeId: string) {
     number: string;
     title: string;
   }[] = [];
+  // HTML order: title="..." data-number="..." data-id="..."
   const epRegex =
-    /data-id="(\d+)"[^>]*data-number="(\d+)"[^>]*title="([^"]*)"/g;
+    /title="([^"]*)"[^>]*data-number="(\d+)"[^>]*data-id="(\d+)"/g;
   let m;
   while ((m = epRegex.exec(html)) !== null) {
-    episodes.push({ dataId: m[1], number: m[2], title: m[3].replace(/&#39;/g, "'") });
+    episodes.push({ dataId: m[3], number: m[2], title: m[1].replace(/&#39;/g, "'") });
   }
   return episodes;
 }
