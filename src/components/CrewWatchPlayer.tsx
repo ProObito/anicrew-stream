@@ -1,4 +1,4 @@
-import { Download, Play } from "lucide-react";
+import { Download, Play, Maximize } from "lucide-react";
 
 interface VideoVersion {
   label: string;
@@ -12,7 +12,6 @@ interface CrewWatchPlayerProps {
   title: string;
   episodeNumber: number;
   episodeTitle?: string;
-  /** Alternate versions like Sub, Dub, Hindi etc — each is a separate video */
   versions?: VideoVersion[];
   activeVersionIndex?: number;
   onVersionChange?: (index: number) => void;
@@ -39,12 +38,18 @@ const CrewWatchPlayer = ({
     );
   }
 
+  // For Drive embeds, force highest quality with &hd=1
+  let finalEmbed = embedUrl;
+  if (embedUrl.includes("drive.google.com") && !embedUrl.includes("hd=1")) {
+    finalEmbed += (embedUrl.includes("?") ? "&" : "?") + "hd=1";
+  }
+
   return (
     <div className="space-y-3">
       {/* Player */}
       <div className="relative w-full aspect-video rounded-2xl overflow-hidden border border-border shadow-2xl bg-black">
         <iframe
-          src={embedUrl}
+          src={finalEmbed}
           className="w-full h-full"
           allowFullScreen
           allow="autoplay; encrypted-media; picture-in-picture; fullscreen"
@@ -71,7 +76,7 @@ const CrewWatchPlayer = ({
           </p>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 flex-wrap">
           {/* Version switcher (Sub/Dub/Hindi etc.) */}
           {versions && versions.length > 1 && (
             <div className="flex items-center gap-1.5">
