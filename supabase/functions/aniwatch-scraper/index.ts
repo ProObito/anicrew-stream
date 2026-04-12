@@ -287,8 +287,16 @@ Deno.serve(async (req) => {
       });
     }
 
+    if (action === "batch-embeds") {
+      const animeId = url.searchParams.get("id") || "";
+      const results = await batchEpisodeEmbeds(animeId);
+      return new Response(JSON.stringify({ episodes: results }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     return new Response(
-      JSON.stringify({ error: "Invalid action. Use: search, episodes, sources" }),
+      JSON.stringify({ error: "Invalid action. Use: search, episodes, sources, batch-embeds" }),
       { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (e: any) {
