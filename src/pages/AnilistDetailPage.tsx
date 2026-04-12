@@ -199,39 +199,49 @@ const AnilistDetailPage = () => {
       )}
 
       {/* CrewWatch Video Player */}
-      {currentPlayingLink?.embed_url && (
+      {playingEp !== null && (
         <div className="w-full max-w-7xl mx-auto px-4 md:px-12 mt-8">
-          {(() => {
-            const versions = ((currentPlayingLink as any).subtitle_tracks || []).map((v: any) => ({
-              label: v.label || "Alt",
-              embed_url: v.embed_url || "",
-              drive_url: v.drive_url,
-            }));
-            const currentEmbed = activeVersion > 0 && versions[activeVersion - 1]?.embed_url
-              ? versions[activeVersion - 1].embed_url
-              : currentPlayingLink.embed_url;
-            const currentDrive = activeVersion > 0 && versions[activeVersion - 1]?.drive_url
-              ? versions[activeVersion - 1].drive_url
-              : currentPlayingLink.drive_url;
+          {currentPlayingLink?.embed_url ? (
+            (() => {
+              const versions = ((currentPlayingLink as any).subtitle_tracks || []).map((v: any) => ({
+                label: v.label || "Alt",
+                embed_url: v.embed_url || "",
+                drive_url: v.drive_url,
+              }));
+              const currentEmbed = activeVersion > 0 && versions[activeVersion - 1]?.embed_url
+                ? versions[activeVersion - 1].embed_url
+                : currentPlayingLink.embed_url;
+              const currentDrive = activeVersion > 0 && versions[activeVersion - 1]?.drive_url
+                ? versions[activeVersion - 1].drive_url
+                : currentPlayingLink.drive_url;
 
-            const allVersions = [
-              { label: "Sub", embed_url: currentPlayingLink.embed_url, drive_url: currentPlayingLink.drive_url || undefined },
-              ...versions,
-            ];
+              const allVersions = [
+                { label: "Sub", embed_url: currentPlayingLink.embed_url, drive_url: currentPlayingLink.drive_url || undefined },
+                ...versions,
+              ];
 
-            return (
-              <CrewWatchPlayer
-                embedUrl={currentEmbed}
-                driveUrl={currentDrive || undefined}
-                title={name}
-                episodeNumber={currentPlayingLink.episode_number}
-                episodeTitle={currentPlayingLink.title || undefined}
-                versions={allVersions.length > 1 ? allVersions : undefined}
-                activeVersionIndex={activeVersion}
-                onVersionChange={(i) => setActiveVersion(i)}
-              />
-            );
-          })()}
+              return (
+                <CrewWatchPlayer
+                  embedUrl={currentEmbed}
+                  driveUrl={currentDrive || undefined}
+                  title={name}
+                  episodeNumber={currentPlayingLink.episode_number}
+                  episodeTitle={currentPlayingLink.title || undefined}
+                  versions={allVersions.length > 1 ? allVersions : undefined}
+                  activeVersionIndex={activeVersion}
+                  onVersionChange={(i) => setActiveVersion(i)}
+                />
+              );
+            })()
+          ) : (
+            <div className="w-full aspect-video bg-card border border-border rounded-2xl flex items-center justify-center">
+              <div className="text-center space-y-2">
+                <Play className="w-10 h-10 text-muted-foreground mx-auto" />
+                <p className="text-muted-foreground text-sm">Episode {playingEp} ka link abhi add nahi hua</p>
+                {isAdmin && <p className="text-xs text-primary">Edit Episodes se link add karo</p>}
+              </div>
+            </div>
+          )}
         </div>
       )}
 
