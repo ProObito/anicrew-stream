@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Film, PlusCircle, Users, Search, Trash2, ShieldPlus, ShieldOff } from "lucide-react";
+import { Film, Users, Search, Trash2, ShieldPlus, ShieldOff, Rss, Loader2, ExternalLink } from "lucide-react";
 import { motion } from "framer-motion";
 import { useAuth } from "@/hooks/useAuth";
 import { Navigate } from "react-router-dom";
@@ -8,7 +8,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import EpisodeLinkEditor from "@/components/EpisodeLinkEditor";
 import { toast } from "sonner";
 
-type Tab = "editEpisodes" | "manageAdmins";
+type Tab = "editEpisodes" | "manageAdmins" | "rssFeed";
 
 const ANILIST_SEARCH = "https://graphql.anilist.co";
 
@@ -16,15 +16,15 @@ const AdminDashboardPage = () => {
   const { user, isAdmin, isOwner, loading } = useAuth();
   const [activeTab, setActiveTab] = useState<Tab>("editEpisodes");
 
-  // Anime search for episode editing
   const [animeSearch, setAnimeSearch] = useState("");
   const [selectedAnime, setSelectedAnime] = useState<{ id: number; title: string } | null>(null);
-
-  // Admin management
   const [newAdminEmail, setNewAdminEmail] = useState("");
   const qc = useQueryClient();
 
-  // Search Anilist
+  // RSS state
+  const [rssLoading, setRssLoading] = useState(false);
+  const [rssItems, setRssItems] = useState<any[]>([]);
+
   const { data: searchResults } = useQuery({
     queryKey: ["admin-anime-search", animeSearch],
     queryFn: async () => {
@@ -42,7 +42,6 @@ const AdminDashboardPage = () => {
     enabled: animeSearch.length >= 2,
   });
 
-  // Fetch all admins (owner only)
   const { data: adminUsers } = useQuery({
     queryKey: ["admin-users"],
     queryFn: async () => {
@@ -59,12 +58,11 @@ const AdminDashboardPage = () => {
   const handleAddAdmin = async () => {
     if (!newAdminEmail.trim()) return;
     try {
-      // Find user by email in profiles
       const { data: profile } = await supabase
         .from("profiles")
         .select("user_id")
         .eq("email", newAdminEmail.trim())
-        .single();
+        .maybeSingle();
       if (!profile) {
         toast.error("User not found. They must sign up first.");
         return;
@@ -90,6 +88,20 @@ const AdminDashboardPage = () => {
     }
   };
 
+  const fetchRss = async () => {
+    setRssLoading(true);
+    try {
+      const url = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/rss-monitor?action=check`;
+      const res = await fetch(url);
+      const data = await res.json();
+      setRssItems(data.items || []);
+      toast.success(`${data.count || 0} items found from RSS feeds`);
+    } catch (e: any) {
+      toast.error("RSS fetch failed: " + e.message);
+    }
+    setRssLoading(false);
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -112,6 +124,7 @@ const AdminDashboardPage = () => {
 
   const sidebarItems: { id: Tab; label: string; icon: React.ReactNode }[] = [
     { id: "editEpisodes", label: "Edit Episodes", icon: <Film className="w-5 h-5" /> },
+    { id: "rssFeed", label: "RSS Feed", icon: <Rss className="w-5 h-5" /> },
     ...(isOwner ? [{ id: "manageAdmins" as Tab, label: "Manage Admins", icon: <Users className="w-5 h-5" /> }] : []),
   ];
 
@@ -173,8 +186,6 @@ const AdminDashboardPage = () => {
           {activeTab === "editEpisodes" && (
             <div className="max-w-4xl">
               <h1 className="text-3xl font-display font-bold mb-6">Edit Anime Episodes</h1>
-              
-              {/* Search Anime */}
               <div className="relative mb-6">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                 <input
@@ -202,12 +213,70 @@ const AdminDashboardPage = () => {
                   </div>
                 )}
               </div>
-
               {selectedAnime && (
-                <EpisodeLinkEditor
-                  anilistId={String(selectedAnime.id)}
-                  animeName={selectedAnime.title}
-                />
+                <EpisodeLinkEditor anilistId={String(selectedAnime.id)} animeName={selectedAnime.title} />
+              )}
+            </div>
+          )}
+
+          {activeTab === "rssFeed" && (
+            <div className="max-w-4xl">
+              <div className="flex items-center justify-between mb-6 flex-wrap gap-3">
+                <h1 className="text-3xl font-display font-bold">RSS Feed Monitor</h1>
+                <button
+                  onClick={fetchRss}
+                  disabled={rssLoading}
+                  className="flex items-center gap-2 bg-primary hover:bg-primary/90 text-primary-foreground px-5 py-2.5 rounded-xl font-bold text-sm transition disabled:opacity-50"
+                >
+                  {rssLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Rss className="w-4 h-4" />}
+                  {rssLoading ? "Checking..." : "Check RSS Feeds"}
+                </button>
+              </div>
+
+              <p className="text-sm text-muted-foreground mb-4">
+                Monitors nyaa.si (VARYG DUAL 1080p) aur SubsPlease (1080p) se latest anime releases.
+              </p>
+
+              {rssItems.length === 0 ? (
+                <div className="bg-card border border-border rounded-2xl p-8 text-center">
+                  <Rss className="w-10 h-10 text-muted-foreground mx-auto mb-3" />
+                  <p className="text-muted-foreground">Click "Check RSS Feeds" to load latest releases</p>
+                </div>
+              ) : (
+                <div className="space-y-2 max-h-[70vh] overflow-y-auto">
+                  {rssItems.map((item, i) => (
+                    <div key={i} className="bg-card border border-border rounded-xl p-4 flex items-start justify-between gap-3">
+                      <div className="min-w-0 flex-1">
+                        <p className="text-sm font-bold text-foreground truncate">{item.animeName}</p>
+                        <p className="text-xs text-muted-foreground mt-0.5">{item.rawTitle}</p>
+                        <div className="flex items-center gap-2 mt-2 flex-wrap">
+                          {item.episode !== null && (
+                            <span className="text-xs bg-primary/20 text-primary font-bold px-2 py-0.5 rounded">
+                              Ep {item.episode}
+                            </span>
+                          )}
+                          <span className="text-xs bg-secondary text-secondary-foreground font-bold px-2 py-0.5 rounded">
+                            {item.quality}
+                          </span>
+                          <span className={`text-xs font-bold px-2 py-0.5 rounded ${
+                            item.source === "nyaa" ? "bg-green-500/20 text-green-400" : "bg-blue-500/20 text-blue-400"
+                          }`}>
+                            {item.source}
+                          </span>
+                          <span className="text-xs text-muted-foreground">{item.pubDate}</span>
+                        </div>
+                      </div>
+                      <a
+                        href={item.link}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="text-primary hover:text-primary/80 p-2 shrink-0"
+                      >
+                        <ExternalLink className="w-4 h-4" />
+                      </a>
+                    </div>
+                  ))}
+                </div>
               )}
             </div>
           )}
@@ -215,8 +284,6 @@ const AdminDashboardPage = () => {
           {activeTab === "manageAdmins" && isOwner && (
             <div className="max-w-2xl">
               <h1 className="text-3xl font-display font-bold mb-6">Manage Admins</h1>
-              
-              {/* Add admin */}
               <div className="flex gap-3 mb-8">
                 <input
                   type="email"
@@ -233,8 +300,6 @@ const AdminDashboardPage = () => {
                   Add Admin
                 </button>
               </div>
-
-              {/* Current admins */}
               <div className="space-y-3">
                 {adminUsers?.map((ar: any) => {
                   const profile = Array.isArray(ar.profiles) ? ar.profiles[0] : ar.profiles;
