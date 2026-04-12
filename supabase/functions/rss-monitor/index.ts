@@ -44,13 +44,20 @@ function extractInfo(title: string): { animeName: string; episode: number | null
   const qMatch = animeName.match(/(480p|720p|1080p|2160p|4K)/i);
   if (qMatch) quality = qMatch[1];
 
-  // Extract episode number: " - 01" or " - S01E01" or " Episode 01"
-  const epMatch = animeName.match(/\s*-\s*(?:S\d+E)?(\d{1,4})\b/i) ||
-                  animeName.match(/Episode\s*(\d{1,4})/i);
-  if (epMatch) {
-    episode = parseInt(epMatch[1], 10);
-    // Anime name is everything before the episode part
-    animeName = animeName.substring(0, animeName.indexOf(epMatch[0])).trim();
+  // Extract episode number: "S01E18" first, then " - 01"
+  const seMatch = animeName.match(/S(\d+)E(\d+)/i);
+  const dashMatch = animeName.match(/\s*-\s*(\d{1,4})(?:\s|v|\b)/i);
+  const epWordMatch = animeName.match(/Episode\s*(\d{1,4})/i);
+  
+  if (seMatch) {
+    episode = parseInt(seMatch[2], 10);
+    animeName = animeName.substring(0, animeName.indexOf(seMatch[0])).trim();
+  } else if (dashMatch) {
+    episode = parseInt(dashMatch[1], 10);
+    animeName = animeName.substring(0, animeName.indexOf(dashMatch[0])).trim();
+  } else if (epWordMatch) {
+    episode = parseInt(epWordMatch[1], 10);
+    animeName = animeName.substring(0, animeName.indexOf(epWordMatch[0])).trim();
   }
 
   // Clean up remaining junk
