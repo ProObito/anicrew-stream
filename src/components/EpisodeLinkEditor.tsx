@@ -115,6 +115,47 @@ const EpisodeLinkEditor = ({ anilistId, animeName }: Props) => {
     toast.success(`${episodeList.length} episode titles imported! Now add links.`);
   };
 
+  // Import all WITH embed links from Aniwatch
+  const [importingWithLinks, setImportingWithLinks] = useState(false);
+  const [importProgress, setImportProgress] = useState("");
+
+  const handleImportAllWithLinks = async () => {
+    if (!selectedAnime) return;
+    setImportingWithLinks(true);
+    setImportProgress("Fetching embed links from Aniwatch...");
+    try {
+      const res = await fetch(`${edgeFnUrl}?action=batch-embeds&id=${encodeURIComponent(selectedAnime.id)}`);
+      const data = await res.json();
+      const episodes = data.episodes || [];
+      
+      if (!episodes.length) {
+        toast.error("No episodes found");
+        setImportingWithLinks(false);
+        return;
+      }
+
+      let saved = 0;
+      for (const ep of episodes) {
+        setImportProgress(`Saving Ep ${ep.number}/${episodes.length}...`);
+        try {
+          await upsert.mutateAsync({
+            anilist_id: anilistId,
+            episode_number: Number(ep.number),
+            title: ep.title || `Episode ${ep.number}`,
+            embed_url: ep.sub_embed || ep.dub_embed || undefined,
+            subtitle_tracks: ep.dub_embed ? [{ label: "Dub", embed_url: ep.dub_embed }] : [],
+          });
+          saved++;
+        } catch { /* skip */ }
+      }
+      toast.success(`${saved} episodes imported with video links!`);
+    } catch (e: any) {
+      toast.error("Import failed: " + e.message);
+    }
+    setImportingWithLinks(false);
+    setImportProgress("");
+  };
+
   const handleSave = async () => {
     if (!mainUrl) {
       toast.error("Paste a Drive or embed link");
@@ -219,13 +260,22 @@ const EpisodeLinkEditor = ({ anilistId, animeName }: Props) => {
                   Selected: <span className="text-primary">{selectedAnime.title}</span>
                 </p>
                 {episodeList.length > 0 && (
-                  <button
-                    onClick={handleImportAllTitles}
-                    className="flex items-center gap-2 bg-primary hover:bg-primary/90 text-primary-foreground px-4 py-2 rounded-lg text-xs font-bold transition"
-                  >
-                    <Upload className="w-3 h-3" />
-                    Import All Titles ({episodeList.length})
-                  </button>
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <button
+                      onClick={handleImportAllWithLinks}
+                      disabled={importingWithLinks}
+                      className="flex items-center gap-2 bg-primary hover:bg-primary/90 text-primary-foreground px-4 py-2 rounded-lg text-xs font-bold transition disabled:opacity-50"
+                    >
+                      <Upload className="w-3 h-3" />
+                      {importingWithLinks ? importProgress : `Import All with Links (${episodeList.length})`}
+                    </button>
+                    <button
+                      onClick={handleImportAllTitles}
+                      className="flex items-center gap-2 bg-secondary hover:bg-secondary/80 text-foreground px-4 py-2 rounded-lg text-xs font-bold border border-border transition"
+                    >
+                      Titles Only
+                    </button>
+                  </div>
                 )}
               </div>
 
