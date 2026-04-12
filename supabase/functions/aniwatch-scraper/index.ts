@@ -151,7 +151,6 @@ async function getEpisodeList(animeId: string) {
 }
 
 async function getEpisodeSources(epDataId: string) {
-  // Get servers
   const serverUrl = `${BASE_URL}/ajax/v2/episode/servers?episodeId=${epDataId}`;
   const serverResp = await fetch(serverUrl, { headers: XHR_HEADERS });
   const serverJson = await serverResp.json();
@@ -169,7 +168,6 @@ async function getEpisodeSources(epDataId: string) {
     while ((sm = pattern.exec(serverHtml)) !== null) {
       matches.push({ dataId: sm[1], serverId: sm[2] });
     }
-    // Priority: server 1 (MegaCloud), then 4 (VidSrc)
     const priority: Record<string, number> = { "1": 1, "4": 2 };
     matches.sort(
       (a, b) => (priority[a.serverId] || 99) - (priority[b.serverId] || 99)
@@ -181,17 +179,24 @@ async function getEpisodeSources(epDataId: string) {
         const srcResp = await fetch(srcUrl, { headers: XHR_HEADERS });
         const srcJson = await srcResp.json();
         const embedLink = srcJson.link;
-        if (
-          embedLink &&
-          (embedLink.toLowerCase().includes("megacloud") ||
+        if (embedLink) {
+          // Return the raw embed link directly — works in iframe
+          result[dtype] = { embedUrl: embedLink, link: embedLink };
+          
+          // Also try megacloud extraction for HLS sources
+          if (
+            embedLink.toLowerCase().includes("megacloud") ||
             embedLink.toLowerCase().includes("rapid-cloud") ||
-            embedLink.toLowerCase().includes("cloud-stream"))
-        ) {
-          const extracted = await megacloudExtract(embedLink);
-          if (extracted.sources?.length) {
-            result[dtype] = extracted;
-            break;
+            embedLink.toLowerCase().includes("cloud-stream")
+          ) {
+            try {
+              const extracted = await megacloudExtract(embedLink);
+              if (extracted.sources?.length) {
+                result[dtype] = { ...extracted, embedUrl: embedLink };
+              }
+            } catch { /* keep raw embed */ }
           }
+          break;
         }
       } catch (e) {
         console.error(`Source extraction error for ${dtype}:`, e);
@@ -200,6 +205,52 @@ async function getEpisodeSources(epDataId: string) {
   }
 
   return result;
+}
+
+/** Batch: get embed URLs for multiple episodes at once */
+async function batchEpisodeEmbeds(animeId: string) {
+  const episodes = await getEpisodeList(animeId);
+  const results: { number: string; title: string; dataId: string; sub_embed?: string; dub_embed?: string }[] = [];
+
+  for (const ep of episodes) {
+    try {
+      const serverUrl = `${BASE_URL}/ajax/v2/episode/servers?episodeId=${ep.dataId}`;
+      const serverResp = await fetch(serverUrl, { headers: XHR_HEADERS });
+      const serverJson = await serverResp.json();
+      const serverHtml = serverJson.html || "";
+
+      const entry: typeof results[0] = { number: ep.number, title: ep.title, dataId: ep.dataId };
+
+      for (const dtype of ["sub", "dub"] as const) {
+        const pattern = new RegExp(
+          `data-type="${dtype}" data-id="(\\d+)"[^>]+data-server-id="(\\d+)"`,
+          "g"
+        );
+        const matches: { dataId: string; serverId: string }[] = [];
+        let sm;
+        while ((sm = pattern.exec(serverHtml)) !== null) {
+          matches.push({ dataId: sm[1], serverId: sm[2] });
+        }
+        const priority: Record<string, number> = { "1": 1, "4": 2 };
+        matches.sort((a, b) => (priority[a.serverId] || 99) - (priority[b.serverId] || 99));
+
+        if (matches.length > 0) {
+          try {
+            const srcUrl = `${BASE_URL}/ajax/v2/episode/sources?id=${matches[0].dataId}`;
+            const srcResp = await fetch(srcUrl, { headers: XHR_HEADERS });
+            const srcJson = await srcResp.json();
+            if (srcJson.link) {
+              entry[`${dtype}_embed`] = srcJson.link;
+            }
+          } catch { /* skip */ }
+        }
+      }
+
+      results.push(entry);
+    } catch { /* skip episode */ }
+  }
+
+  return results;
 }
 
 // ─── Handler ───
