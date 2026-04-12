@@ -115,6 +115,47 @@ const EpisodeLinkEditor = ({ anilistId, animeName }: Props) => {
     toast.success(`${episodeList.length} episode titles imported! Now add links.`);
   };
 
+  // Import all WITH embed links from Aniwatch
+  const [importingWithLinks, setImportingWithLinks] = useState(false);
+  const [importProgress, setImportProgress] = useState("");
+
+  const handleImportAllWithLinks = async () => {
+    if (!selectedAnime) return;
+    setImportingWithLinks(true);
+    setImportProgress("Fetching embed links from Aniwatch...");
+    try {
+      const res = await fetch(`${edgeFnUrl}?action=batch-embeds&id=${encodeURIComponent(selectedAnime.id)}`);
+      const data = await res.json();
+      const episodes = data.episodes || [];
+      
+      if (!episodes.length) {
+        toast.error("No episodes found");
+        setImportingWithLinks(false);
+        return;
+      }
+
+      let saved = 0;
+      for (const ep of episodes) {
+        setImportProgress(`Saving Ep ${ep.number}/${episodes.length}...`);
+        try {
+          await upsert.mutateAsync({
+            anilist_id: anilistId,
+            episode_number: Number(ep.number),
+            title: ep.title || `Episode ${ep.number}`,
+            embed_url: ep.sub_embed || ep.dub_embed || undefined,
+            subtitle_tracks: ep.dub_embed ? [{ label: "Dub", embed_url: ep.dub_embed }] : [],
+          });
+          saved++;
+        } catch { /* skip */ }
+      }
+      toast.success(`${saved} episodes imported with video links!`);
+    } catch (e: any) {
+      toast.error("Import failed: " + e.message);
+    }
+    setImportingWithLinks(false);
+    setImportProgress("");
+  };
+
   const handleSave = async () => {
     if (!mainUrl) {
       toast.error("Paste a Drive or embed link");
