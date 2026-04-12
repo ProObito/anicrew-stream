@@ -260,13 +260,22 @@ const EpisodeLinkEditor = ({ anilistId, animeName }: Props) => {
                   Selected: <span className="text-primary">{selectedAnime.title}</span>
                 </p>
                 {episodeList.length > 0 && (
-                  <button
-                    onClick={handleImportAllTitles}
-                    className="flex items-center gap-2 bg-primary hover:bg-primary/90 text-primary-foreground px-4 py-2 rounded-lg text-xs font-bold transition"
-                  >
-                    <Upload className="w-3 h-3" />
-                    Import All Titles ({episodeList.length})
-                  </button>
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <button
+                      onClick={handleImportAllWithLinks}
+                      disabled={importingWithLinks}
+                      className="flex items-center gap-2 bg-primary hover:bg-primary/90 text-primary-foreground px-4 py-2 rounded-lg text-xs font-bold transition disabled:opacity-50"
+                    >
+                      <Upload className="w-3 h-3" />
+                      {importingWithLinks ? importProgress : `Import All with Links (${episodeList.length})`}
+                    </button>
+                    <button
+                      onClick={handleImportAllTitles}
+                      className="flex items-center gap-2 bg-secondary hover:bg-secondary/80 text-foreground px-4 py-2 rounded-lg text-xs font-bold border border-border transition"
+                    >
+                      Titles Only
+                    </button>
+                  </div>
                 )}
               </div>
 
