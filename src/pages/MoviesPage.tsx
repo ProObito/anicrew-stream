@@ -1,37 +1,40 @@
 import { useQuery } from "@tanstack/react-query";
-import { mm, normalizeMM, pickArray } from "@/lib/multimovies";
-import MMCard from "@/components/MMCard";
-import { SkeletonGrid } from "@/components/SkeletonCard";
+import { tmdb } from "@/lib/tmdb";
+import TmdbHeroSlider from "@/components/TmdbHeroSlider";
+import TmdbRow from "@/components/TmdbRow";
 
 const MoviesPage = () => {
-  const { data, isLoading, isError } = useQuery({
-    queryKey: ["mm-movies-list"],
-    queryFn: async () => {
-      // Aggregate enough to show ~100
-      const pages = await Promise.all([1, 2, 3, 4, 5, 6].map((p) => mm.movies(p).catch(() => null)));
-      const items: any[] = [];
-      for (const p of pages) {
-        items.push(...pickArray(p, "movies", "items", "results"));
-        if (items.length >= 100) break;
-      }
-      return items.slice(0, 100).map(normalizeMM);
-    },
-  });
+  const trending = useQuery({ queryKey: ["tmdb", "movie", "trending"], queryFn: () => tmdb.trending("movie") });
+  const popular = useQuery({ queryKey: ["tmdb", "movie", "popular"], queryFn: () => tmdb.popular("movie") });
+  const topRated = useQuery({ queryKey: ["tmdb", "movie", "top"], queryFn: () => tmdb.topRated("movie") });
+  const nowPlaying = useQuery({ queryKey: ["tmdb", "movie", "now"], queryFn: () => tmdb.nowPlaying() });
+  const upcoming = useQuery({ queryKey: ["tmdb", "movie", "upcoming"], queryFn: () => tmdb.upcoming() });
+
+  const genres = useQuery({ queryKey: ["tmdb", "movie", "genres"], queryFn: () => tmdb.genres("movie") });
+  const topGenres = genres.data?.genres.slice(0, 5) ?? [];
+  const genreRows = topGenres.map((g) =>
+    // eslint-disable-next-line react-hooks/rules-of-hooks
+    useQuery({
+      queryKey: ["tmdb", "movie", "genre", g.id],
+      queryFn: () => tmdb.discover("movie", { with_genres: g.id, sort_by: "popularity.desc" }),
+    })
+  );
 
   return (
-    <div className="pt-20 pb-24 md:pb-10 px-4 md:px-16 lg:px-24">
-      <h1 className="text-3xl md:text-4xl font-display font-black uppercase tracking-tight mb-6">
-        Movies
-      </h1>
-      {isLoading && <SkeletonGrid count={18} />}
-      {isError && <p className="text-muted-foreground">Failed to load movies.</p>}
-      {data && (
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
-          {data.map((m) => (
-            <MMCard key={m.slug} item={m} kind="movie" />
-          ))}
-        </div>
-      )}
+    <div className="pb-24 md:pb-10 min-h-screen">
+      {trending.data && <TmdbHeroSlider items={trending.data.results} kind="movie" />}
+
+      <div className="mt-8 flex flex-col gap-2">
+        <TmdbRow title="Trending This Week" items={trending.data?.results} kind="movie" isLoading={trending.isLoading} />
+        <TmdbRow title="Now Playing" items={nowPlaying.data?.results} kind="movie" isLoading={nowPlaying.isLoading} />
+        <TmdbRow title="Popular Movies" items={popular.data?.results} kind="movie" isLoading={popular.isLoading} />
+        <TmdbRow title="Top Rated" items={topRated.data?.results} kind="movie" isLoading={topRated.isLoading} />
+        <TmdbRow title="Upcoming" items={upcoming.data?.results} kind="movie" isLoading={upcoming.isLoading} />
+
+        {topGenres.map((g, i) => (
+          <TmdbRow key={g.id} title={g.name} items={genreRows[i].data?.results} kind="movie" isLoading={genreRows[i].isLoading} />
+        ))}
+      </div>
     </div>
   );
 };
