@@ -13,7 +13,7 @@ const Index = () => {
   const spotlight = data?.spotlight ?? [];
 
   return (
-    <div className="pb-10 min-h-screen">
+    <div className="pb-24 md:pb-10 min-h-screen">
       {isLoading ? (
         <div className="w-full h-[70vh] skeleton-pulse" />
       ) : spotlight.length > 0 ? (
@@ -21,13 +21,13 @@ const Index = () => {
       ) : null}
 
       <div className="relative z-20 mt-10 flex flex-col gap-2">
-        <AnimeGrid title="Trending Now" animes={data?.trending} isLoading={isLoading} count={15} isAnilist />
-        <AnimeGrid title="Top Airing" animes={data?.topAiring} isLoading={isLoading} count={15} isAnilist />
-        <AnimeGrid title="Recently Updated" animes={data?.recentlyUpdated} isLoading={isLoading} count={15} isAnilist />
-        <AnimeGrid title="Most Popular" animes={data?.mostPopular} isLoading={isLoading} count={15} isAnilist />
-        <AnimeGrid title="Top Rated" animes={data?.topRated} isLoading={isLoading} count={15} isAnilist />
-        <AnimeGrid title="Recently Completed" animes={data?.completed} isLoading={isLoading} count={15} isAnilist />
-        <AnimeGrid title="Upcoming" animes={data?.upcoming} isLoading={isLoading} count={15} isAnilist />
+        <AnimeGrid title="Trending Now" animes={data?.trending} isLoading={isLoading} count={50} isAnilist />
+        <AnimeGrid title="Top Airing" animes={data?.topAiring} isLoading={isLoading} count={50} isAnilist />
+        <AnimeGrid title="Recently Updated" animes={data?.recentlyUpdated} isLoading={isLoading} count={50} isAnilist />
+        <AnimeGrid title="Most Popular" animes={data?.mostPopular} isLoading={isLoading} count={50} isAnilist />
+        <AnimeGrid title="Top Rated" animes={data?.topRated} isLoading={isLoading} count={50} isAnilist />
+        <AnimeGrid title="Recently Completed" animes={data?.completed} isLoading={isLoading} count={50} isAnilist />
+        <AnimeGrid title="Upcoming" animes={data?.upcoming} isLoading={isLoading} count={50} isAnilist />
       </div>
 
       <div className="mt-8">
