@@ -22,6 +22,8 @@ const MovieDetailPage = lazy(() => import("./pages/MovieDetailPage"));
 const SeriesDetailPage = lazy(() => import("./pages/SeriesDetailPage"));
 const SchedulePage = lazy(() => import("./pages/SchedulePage"));
 const AnimePage = lazy(() => import("./pages/AnimePage"));
+const BrowsePage = lazy(() => import("./pages/BrowsePage"));
+const ProfilePage = lazy(() => import("./pages/ProfilePage"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
 const queryClient = new QueryClient({
@@ -63,6 +65,8 @@ const App = () => (
             <Route path="/room" element={<RoomPage />} />
             <Route path="/admin" element={<AdminDashboardPage />} />
             <Route path="/auth" element={<AuthPage />} />
+            <Route path="/browse" element={<BrowsePage />} />
+            <Route path="/profile" element={<ProfilePage />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </Suspense>
