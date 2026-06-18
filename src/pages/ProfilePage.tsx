@@ -1,17 +1,19 @@
+import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { useWatchlistStore } from "@/store/watchlistStore";
-import { LogOut, Shield, Heart, Settings, Mail } from "lucide-react";
+import { LogOut, Shield, Heart, Mail } from "lucide-react";
 
 const ProfilePage = () => {
   const { user, isAdmin, signOut } = useAuth();
   const watchlistCount = useWatchlistStore((s) => s.items.length);
   const navigate = useNavigate();
 
-  if (!user) {
-    navigate("/auth", { replace: true });
-    return null;
-  }
+  useEffect(() => {
+    if (!user) navigate("/auth", { replace: true });
+  }, [user, navigate]);
+
+  if (!user) return null;
 
   const name = (user.user_metadata as any)?.display_name || user.email?.split("@")[0] || "Friend";
   const avatar = (user.user_metadata as any)?.avatar_url;
