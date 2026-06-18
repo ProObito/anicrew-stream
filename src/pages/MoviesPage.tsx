@@ -1,4 +1,4 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueries } from "@tanstack/react-query";
 import { tmdb } from "@/lib/tmdb";
 import TmdbHeroSlider from "@/components/TmdbHeroSlider";
 import TmdbRow from "@/components/TmdbRow";
@@ -12,13 +12,12 @@ const MoviesPage = () => {
 
   const genres = useQuery({ queryKey: ["tmdb", "movie", "genres"], queryFn: () => tmdb.genres("movie") });
   const topGenres = genres.data?.genres.slice(0, 5) ?? [];
-  const genreRows = topGenres.map((g) =>
-    // eslint-disable-next-line react-hooks/rules-of-hooks
-    useQuery({
+  const genreRows = useQueries({
+    queries: topGenres.map((g) => ({
       queryKey: ["tmdb", "movie", "genre", g.id],
       queryFn: () => tmdb.discover("movie", { with_genres: g.id, sort_by: "popularity.desc" }),
-    })
-  );
+    })),
+  });
 
   return (
     <div className="pb-24 md:pb-10 min-h-screen">
