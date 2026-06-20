@@ -1,5 +1,5 @@
-// MultiMoviesAPI client - https://multimoviesapis.vercel.app
-const MM_BASE = "https://multimoviesapis.vercel.app/api";
+// MultiMoviesAPI client — https://moviesapi.proyato.com
+const MM_BASE = "https://moviesapi.proyato.com/api";
 
 export interface MMItem {
   title: string;
@@ -14,9 +14,10 @@ export interface MMItem {
   genres?: string[];
 }
 
-export interface MMResponse<T> {
-  success: boolean;
-  results: T;
+export interface MMSource {
+  title: string;
+  embed_url: string;
+  type?: string;
 }
 
 async function mmFetch<T>(path: string): Promise<T> {
@@ -28,6 +29,7 @@ async function mmFetch<T>(path: string): Promise<T> {
 }
 
 export const mm = {
+  base: MM_BASE,
   home: () => mmFetch<any>("/"),
   featured: () => mmFetch<any>("/featured"),
   trending: (type: "movie" | "tv" = "movie") => mmFetch<any>(`/trending?type=${type}`),
@@ -40,17 +42,18 @@ export const mm = {
   seasons: (slug: string) => mmFetch<any>(`/tvshows/${slug}/seasons`),
   episodes: (slug: string, season: number) =>
     mmFetch<any>(`/tvshows/${slug}/seasons/${season}/episodes`),
+  genre: (slug: string, page = 1) => mmFetch<any>(`/genre/${slug}?page=${page}`),
   search: (q: string) => mmFetch<any>(`/search?q=${encodeURIComponent(q)}`),
-  playerUrl: (slug: string, type: "movie" | "tv", title?: string, season?: number, episode?: number) => {
-    const params = new URLSearchParams({ type });
-    if (title) params.set("title", title);
-    if (season) params.set("season", String(season));
-    if (episode) params.set("episode", String(episode));
+  playerUrl: (slug: string, opts: { type: "movie" | "tv"; title?: string; season?: number; episode?: number; server?: number }) => {
+    const params = new URLSearchParams({ type: opts.type });
+    if (opts.title) params.set("title", opts.title);
+    if (opts.season) params.set("season", String(opts.season));
+    if (opts.episode) params.set("episode", String(opts.episode));
+    if (opts.server !== undefined) params.set("server", String(opts.server));
     return `${MM_BASE}/player/${slug}?${params.toString()}`;
   },
 };
 
-// Normalize various API shapes into a common card item
 export function normalizeMM(raw: any): MMItem {
   return {
     title: raw?.title || raw?.name || "Untitled",

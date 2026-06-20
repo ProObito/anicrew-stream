@@ -22,6 +22,7 @@ const MovieDetailPage = lazy(() => import("./pages/MovieDetailPage"));
 const SeriesDetailPage = lazy(() => import("./pages/SeriesDetailPage"));
 const SchedulePage = lazy(() => import("./pages/SchedulePage"));
 const AnimePage = lazy(() => import("./pages/AnimePage"));
+const MMDetailPage = lazy(() => import("./pages/MMDetailPage"));
 const BrowsePage = lazy(() => import("./pages/BrowsePage"));
 const ProfilePage = lazy(() => import("./pages/ProfilePage"));
 const NotFound = lazy(() => import("./pages/NotFound"));
@@ -53,6 +54,7 @@ const App = () => (
             <Route path="/" element={<Index />} />
             <Route path="/search" element={<SearchPage />} />
             <Route path="/anime" element={<AnimePage />} />
+            <Route path="/mm/:type/:slug" element={<MMDetailPage />} />
             <Route path="/schedule" element={<SchedulePage />} />
             <Route path="/movies" element={<MoviesPage />} />
             <Route path="/movies/:slug" element={<MovieDetailPage />} />
