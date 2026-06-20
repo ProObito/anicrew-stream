@@ -1,8 +1,8 @@
 import { useParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { Star, Calendar, Clock } from "lucide-react";
-import { tmdb, tmdbImg, playerUrl } from "@/lib/tmdb";
-import PlayerFrame from "@/components/PlayerFrame";
+import { tmdb, tmdbImg } from "@/lib/tmdb";
+import MultiServerPlayer, { buildTmdbServers } from "@/components/MultiServerPlayer";
 import PlayerComments from "@/components/PlayerComments";
 import TmdbRow from "@/components/TmdbRow";
 
@@ -53,7 +53,7 @@ const MovieDetailPage = () => {
           </div>
         </div>
 
-        <PlayerFrame src={playerUrl.movie(data.id)} title={title} />
+        <MultiServerPlayer servers={buildTmdbServers(data.id, "movie")} title={title} />
 
         <PlayerComments storageKey={`anicrew-comments-movie-${data.id}`} />
 

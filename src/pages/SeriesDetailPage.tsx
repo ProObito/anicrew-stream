@@ -2,8 +2,8 @@ import { useParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import { Star, Calendar } from "lucide-react";
-import { tmdb, tmdbImg, playerUrl } from "@/lib/tmdb";
-import PlayerFrame from "@/components/PlayerFrame";
+import { tmdb, tmdbImg } from "@/lib/tmdb";
+import MultiServerPlayer, { buildTmdbServers } from "@/components/MultiServerPlayer";
 import PlayerComments from "@/components/PlayerComments";
 import EpisodeSlider from "@/components/EpisodeSlider";
 import TmdbRow from "@/components/TmdbRow";
@@ -65,8 +65,8 @@ const SeriesDetailPage = () => {
           </div>
         </div>
 
-        <PlayerFrame
-          src={playerUrl.tv(data.id, season, episode)}
+        <MultiServerPlayer
+          servers={buildTmdbServers(data.id, "tv", season, episode)}
           title={`${title} S${season}E${episode}`}
         />
 
